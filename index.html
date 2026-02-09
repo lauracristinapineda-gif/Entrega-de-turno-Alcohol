@@ -315,6 +315,7 @@
     return m;
   }
   function computeWorkAndBreaks(minutesBase){
+    // 10 min cada 120 min de TRABAJO EFECTIVO (iterativo)
     let work=Math.max(minutesBase,0), prev=-1, count=0, it=0;
     while(it<12){
       count=Math.floor(work/120);
@@ -349,6 +350,7 @@
   const detalle_descuentos = document.getElementById('detalle_descuentos');
   const calc_err = document.getElementById('calc_err');
 
+  // Paros
   const paros_alerta = document.getElementById('paros_alerta');
   const paros_total = document.getElementById('paros_total');
   const sums = {
@@ -487,11 +489,11 @@
     const fin = parseDateTimeLocal(env_fin.value);
     const velProg = Number(vel_prog.value || 0);
 
-    // Reset mínimos (no tocar horas_atraso aquí; lo gestiona recalc/setAtrasoHoras)
+    // Reset mínimos
     unid_teoricas.value = '';
     detalle_descuentos.textContent = '';
 
-    // Salidas tempranas: fijar atraso 0 SIEMPRE
+    // Salidas tempranas con atraso 0
     if(!bounds){
       calc_err.textContent = 'Seleccione Fecha del turno y Turno.';
       calc_err.classList.add('show');
@@ -519,7 +521,6 @@
     let winEnd = bounds.end;
     if (fin) winEnd = new Date(Math.min(bounds.end.getTime(), fin.getTime()));
 
-    // Ventana vacía y diagnósticos
     if (fin && fin <= bounds.start){
       unid_teoricas.value = 0;
       calc_err.textContent = 'El lote terminó antes de iniciar este turno. (Ventana vacía)';
@@ -556,12 +557,12 @@
     const teoricas = Math.floor(minutosEfectivos * velProg);
     unid_teoricas.value = isFinite(teoricas) ? teoricas : '';
 
-    // Detalle de descuentos
+    // Detalle
     const casinoTxt = descCasino ? ` · Casino ${descCasino} min` : '';
     const pausasTxt = cantPausas > 0 ? ` · Pausas ${cantPausas}×10 = ${descPausas} min` : ' · Pausas 0 min';
     detalle_descuentos.textContent = `Ventana: ${fmtDateTime(winStart)} → ${fmtDateTime(winEnd)} | Bruto: ${Math.round(minutosBrutos)} min${casinoTxt}${pausasTxt} → Efectivo: ${Math.round(minutosEfectivos)} min`;
 
-    // Atraso y validaciones (en este orden)
+    // Atraso, validaciones y productividad
     recalcAtraso();
     validateParosVsAtraso();
     updateProductividad();
@@ -622,10 +623,9 @@
     for(const [cat,label] of Object.entries(labels)){
       const arr=parosData[cat]; 
       const sum=arr.reduce((a,b)=>a+(Number(b.min)||0),0);
-      // Sin espacios alrededor de "·"
       lines.push(`${label}·Total: ${sum} min`);
       if(arr.length===0){ lines.push('•—'); }
-      else { arr.forEach(it=> lines.push(`• ${it.min} min–${it.just || 'Sin justificación'}`)); } // Sin espacios alrededor de "–"
+      else { arr.forEach(it=> lines.push(`• ${it.min} min–${it.just || 'Sin justificación'}`)); }
     }
     lines.push(`Total paros: ${paros_total.textContent} min`);
     return lines.join('\n');
@@ -660,7 +660,7 @@
   env_producto.addEventListener('change', ()=>{ updateVelocidadProgramada(); updateCalculos(); });
   env_producto.addEventListener('input',  ()=>{ updateVelocidadProgramada(); updateCalculos(); });
 
-  // Reales: recalcular productividad, atraso y validación de paros en vivo (sin re-ejecutar toda la lógica)
+  // Reales: recalcular en vivo (sin re-ejecutar todo)
   unid_reales.addEventListener('input',  ()=>{ updateProductividad(); recalcAtraso(); validateParosVsAtraso(); });
   unid_reales.addEventListener('change', ()=>{ updateProductividad(); recalcAtraso(); validateParosVsAtraso(); });
 
