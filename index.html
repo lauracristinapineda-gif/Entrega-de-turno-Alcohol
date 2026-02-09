@@ -51,7 +51,7 @@
 <body>
 <header>
   <h1>Entrega de Turno – Alcohol</h1>
-  <div class="sub">Cálculo de teóricas según regla, con pausas/casino, paros detallados y mensaje listo para WhatsApp.</div>
+  <div class="sub">Cálculo de teóricas (intersección Turno ∩ Lote), pausas/casino, paros detallados y WhatsApp.</div>
 </header>
 
 <div class="wrap">
@@ -125,7 +125,7 @@
         <input type="text" id="env_lote" placeholder="Ej: ENV-240215-03" />
       </div>
       <div class="col-6">
-        <div class="muted">Cálculo fijo: <span class="badge">Inicio lote → Fin turno</span> o <span class="badge">Inicio turno → Fin lote</span> si inició día anterior.</div>
+        <div class="muted">Cálculo fijo: intersección entre el turno y la actividad real del lote.</div>
       </div>
 
       <div class="col-6">
@@ -135,7 +135,7 @@
       <div class="col-6">
         <label for="env_fin">Fin del lote (fecha y hora)</label>
         <input type="datetime-local" id="env_fin" />
-        <div class="hint">Si el lote inició un día anterior, se usa este fin (si existe).</div>
+        <div class="hint">Si no terminó, déjelo vacío.</div>
       </div>
 
       <div class="col-6">
@@ -145,22 +145,3 @@
       </div>
       <div class="col-6">
         <label for="vel_real">Velocidad real (frascos/min)</label>
-        <input type="number" id="vel_real" min="0" step="0.1" placeholder="Dato reportado por el supervisor" />
-      </div>
-
-      <div class="col-6">
-        <label for="unid_teoricas">Unidades teóricas (auto)</label>
-        <input type="number" id="unid_teoricas" class="readonly" readonly />
-        <div class="muted" id="detalle_descuentos"></div>
-      </div>
-      <div class="col-6">
-        <label for="unid_reales">Unidades reales</label>
-        <input type="number" id="unid_reales" min="0" />
-      </div>
-
-      <!-- ESTIBAS 000–999 -->
-      <div class="col-12">
-        <label>Estibas (códigos 000–999)</label>
-        <div class="paro-form">
-          <input id="estiba_code" type="text" inputmode="numeric" pattern="\\d{3}" maxlength="3" placeholder="Ej: 007" />
-
