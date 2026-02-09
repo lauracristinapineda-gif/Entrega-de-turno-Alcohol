@@ -32,11 +32,6 @@
   .actionbar button{ flex:1 1 48%; min-height:46px; border:none; border-radius:12px; color:#fff; font-weight:700; font-size:1rem; letter-spacing:.2px; }
   .primary{ background:var(--c1); } .success{ background:var(--c2);} .ghost{ background:#fff; color:#111; border:1px solid #d1d5db;} .secondary{ background:var(--c4); color:#fff;}
   .badge { display:inline-block; background:#eef2ff; color:#1e3a8a; padding:.1rem .5rem; border-radius:999px; font-size:.78rem; }
-  /* Estibas (chips) */
-  .chiplist { display:flex; gap:.4rem; flex-wrap: wrap; margin-top:.5rem; }
-  .chip { background:#eef2ff; color:#1e3a8a; padding:.28rem .55rem; border-radius:999px; display:inline-flex; align-items:center; gap:.4rem; font-weight:700; }
-  .chip button { border:none; background:transparent; color:#1e3a8a; cursor:pointer; font-weight:900; }
-  /* Paros (listas verticales) */
   .paro-form { display:flex; gap:.5rem; flex-wrap:wrap; }
   .paro-form input[type="number"]{ max-width: 140px; }
   .paro-list { margin:.5rem 0 0; padding:0; list-style:none; }
@@ -64,10 +59,13 @@
       </div>
       <div class="col-6">
         <label for="turno">Turno</label>
+        <!-- 4 variantes con dataset para horas e info del turno -->
         <select id="turno" required>
           <option value="">-- Seleccione --</option>
-          <option value="1">Turno 1 (07:00–15:00)</option>
-          <option value="2">Turno 2 (15:00–23:00)</option>
+          <option value="1_0700_1500" data-turno="1" data-start="07:00" data-end="15:00" data-cross="same">Turno 1 (07:00–15:00)</option>
+          <option value="1_0700_1630" data-turno="1" data-start="07:00" data-end="16:30" data-cross="same">Turno 1 (07:00–16:30)</option>
+          <option value="2_1500_2300" data-turno="2" data-start="15:00" data-end="23:00" data-cross="same">Turno 2 (15:00–23:00)</option>
+          <option value="2_1500_0145" data-turno="2" data-start="15:00" data-end="01:45" data-cross="next">Turno 2 (15:00–01:45)</option>
         </select>
       </div>
       <div class="col-12">
@@ -82,7 +80,7 @@
     <div class="grid">
       <div class="col-6">
         <label for="fab_lote">Lote</label>
-        <input type="text" id="fab_lote" placeholder="Ej: AL-240215-01" />
+        <input type="text" id="fab_lote" placeholder="Ej: 6A001" />
       </div>
       <div class="col-6">
         <label for="fab_estado">Estado</label>
@@ -105,7 +103,7 @@
     <div class="grid">
       <div class="col-12">
         <label for="env_producto">Producto</label>
-        <!-- Cada opción lleva data-speed para autollenar -->
+        <!-- Opciones con data-speed para autollenar -->
         <select id="env_producto" required>
           <option value="">-- Seleccione --</option>
           <option value="ALCOHOL 700ML" data-speed="54">ALCOHOL 700ML</option>
@@ -121,12 +119,13 @@
         </select>
         <div id="prod_err" class="error-msg">Seleccione un producto válido para asignar la velocidad programada.</div>
       </div>
+
       <div class="col-6">
         <label for="env_lote">Lote</label>
-        <input type="text" id="env_lote" placeholder="Ej: ENV-240215-03" />
+        <input type="text" id="env_lote" placeholder="Ej: 6A001" />
       </div>
       <div class="col-6">
-        <div class="muted">Cálculo fijo: intersección entre el turno y la actividad real del lote.</div>
+        <div class="muted">Cálculo: intersección entre el turno seleccionado y la actividad real del lote.</div>
       </div>
 
       <div class="col-6">
@@ -167,16 +166,10 @@
         <div class="hint">Se calcula automáticamente al ingresar Unidades reales y al actualizar las teóricas.</div>
       </div>
 
-      <!-- ESTIBAS 000–999 -->
+      <!-- ESTIBAS (campo de texto abierto) -->
       <div class="col-12">
-        <label>Estibas (códigos 000–999)</label>
-        <div class="paro-form">
-          <input id="estiba_code" type="text" inputmode="numeric" pattern="\\d{3}" maxlength="3" placeholder="Ej: 007" />
-          <button id="btn_add_estiba" class="ghost" type="button">Agregar</button>
-          <div class="muted">Total: <span id="estibas_count">0</span></div>
-        </div>
-        <div id="estiba_err" class="error-msg">Usa 3 dígitos (000–999). Evita duplicados.</div>
-        <div class="chiplist" id="estibas_chiplist"></div>
+        <label for="estibas_text">Estibas</label>
+        <textarea id="estibas_text" placeholder="Ej: Estibas 6A001 área fría · 3 estibas completas..." ></textarea>
       </div>
 
       <div class="col-12">
@@ -285,27 +278,48 @@
 
 <script>
 (function(){
-  // ---------- Fechas (LOCAL, sin UTC) ----------
+  // -------- Fechas (LOCAL, sin UTC) --------
   function parseDateOnlyLocal(s){ if(!s) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,(m||1)-1,(d||1),0,0,0,0); }
   function parseDateTimeLocal(s){ if(!s) return null; const [date,time='00:00']=s.split('T'); const [y,m,d]=date.split('-').map(Number); const [hh,mm]=time.split(':').map(Number); return new Date(y,(m||1)-1,(d||1),(hh||0),(mm||0),0,0); }
   function two(n){ return String(n).padStart(2,'0'); }
   function fmtDateTime(d){ if(!d) return ''; return `${d.getFullYear()}-${two(d.getMonth()+1)}-${two(d.getDate())} ${two(d.getHours())}:${two(d.getMinutes())}`; }
   function minutesBetween(a,b){ return (b-a)/60000; }
-  function getShiftBoundsLocal(dateStr, turnoVal){
-    if(!dateStr || !turnoVal) return null;
-    const base=parseDateOnlyLocal(dateStr);
-    const start=new Date(base), end=new Date(base);
-    if(turnoVal==='1'){ start.setHours(7,0,0,0); end.setHours(15,0,0,0); }
-    else if(turnoVal==='2'){ start.setHours(15,0,0,0); end.setHours(23,0,0,0); }
-    else return null;
-    return {start,end};
+
+  // -------- Límites del turno a partir del select (4 variantes, con cruce de medianoche) --------
+  const fecha = document.getElementById('fecha');
+  const turnoSel = document.getElementById('turno');
+
+  function getShiftBoundsLocal(dateStr){
+    if(!dateStr || !turnoSel || !turnoSel.value) return null;
+    const opt = turnoSel.selectedOptions && turnoSel.selectedOptions[0];
+    if(!opt) return null;
+    const base = parseDateOnlyLocal(dateStr);
+    const startHM = (opt.dataset.start || '07:00').split(':').map(Number);
+    const endHM   = (opt.dataset.end   || '15:00').split(':').map(Number);
+    const cross   = (opt.dataset.cross || 'same'); // 'same' | 'next'
+    const start = new Date(base); start.setHours(startHM[0]||0, startHM[1]||0, 0, 0);
+    const end = new Date(base);   end.setHours(endHM[0]||0,   endHM[1]||0,   0, 0);
+
+    // Si es cruce de medianoche o el fin queda antes/igual al inicio, pasa al día siguiente
+    if(cross==='next' || end <= start){
+      end.setDate(end.getDate()+1);
+    }
+    const turnoNum = opt.dataset.turno || '';
+    const label = opt.textContent || '';
+    return { start, end, turnoNum, label };
   }
 
-  // ---------- Descansos ----------
-  function casinoMinutes(bounds, winStart, winEnd, turnoVal){
+  // -------- Descansos --------
+  function casinoMinutes(bounds, winStart, winEnd, turnoNum){
+    // T1: 12:00 (día base), T2: 19:00 (día base)
     let m=0;
-    if(turnoVal==='1'){ const t=new Date(bounds.start); t.setHours(12,0,0,0); if(winStart<t && winEnd>t) m+=40; }
-    else if(turnoVal==='2'){ const t=new Date(bounds.start); t.setHours(19,0,0,0); if(winStart<t && winEnd>t) m+=40; }
+    if(String(turnoNum)==='1'){
+      const t=new Date(bounds.start); t.setHours(12,0,0,0);
+      if(winStart<t && winEnd>t) m+=40;
+    } else if (String(turnoNum)==='2'){
+      const t=new Date(bounds.start); t.setHours(19,0,0,0);
+      if(winStart<t && winEnd>t) m+=40;
+    }
     return m;
   }
   function computeWorkAndBreaks(minutesBase){
@@ -321,13 +335,12 @@
     return { work, breaks: count*10, count };
   }
 
-  // ---------- DOM ----------
-  const fecha = document.getElementById('fecha');
-  const turno = document.getElementById('turno');
+  // -------- DOM refs --------
   const ausentismos = document.getElementById('ausentismos');
   const fab_lote = document.getElementById('fab_lote');
   const fab_estado = document.getElementById('fab_estado');
   const fab_pendientes = document.getElementById('fab_pendientes');
+
   const env_producto = document.getElementById('env_producto');
   const prod_err = document.getElementById('prod_err');
   const env_lote = document.getElementById('env_lote');
@@ -338,17 +351,12 @@
   const unid_teoricas = document.getElementById('unid_teoricas');
   const unid_reales = document.getElementById('unid_reales');
   const productividad = document.getElementById('productividad');
+  const estibas_text = document.getElementById('estibas_text');
+
   const horas_atraso = document.getElementById('horas_atraso');
   const atraso_min_detalle = document.getElementById('atraso_min_detalle');
   const detalle_descuentos = document.getElementById('detalle_descuentos');
   const calc_err = document.getElementById('calc_err');
-
-  // Estibas
-  const estiba_code = document.getElementById('estiba_code');
-  const btn_add_estiba = document.getElementById('btn_add_estiba');
-  const estiba_err = document.getElementById('estiba_err');
-  const estibas_chiplist = document.getElementById('estibas_chiplist');
-  const estibas_count = document.getElementById('estibas_count');
 
   // Paros
   const paros_alerta = document.getElementById('paros_alerta');
@@ -370,13 +378,14 @@
     materiales:{ min: document.getElementById('materiales_min'), just: document.getElementById('materiales_just'), list: document.getElementById('list_materiales'), err: document.getElementById('materiales_err') },
   };
 
+  // Botones
   const btn_generar = document.getElementById('btn_generar');
   const btn_whatsapp = document.getElementById('btn_whatsapp');
   const btn_copiar = document.getElementById('btn_copiar');
   const btn_limpiar = document.getElementById('btn_limpiar');
   const mensaje = document.getElementById('mensaje');
 
-  // ---------- Velocidad programada (lee data-speed del option) ----------
+  // -------- Velocidad programada (lee data-speed del option) --------
   function getSelectedSpeed(){
     const opt = env_producto.selectedOptions && env_producto.selectedOptions[0];
     const ds = opt ? Number(opt.dataset.speed || '') : NaN;
@@ -393,7 +402,7 @@
     }
   }
 
-  // ---------- Productividad ----------
+  // -------- Productividad --------
   function updateProductividad(){
     const ut = Number(unid_teoricas?.value || 0);
     const ur = Number(unid_reales?.value || 0);
@@ -405,123 +414,9 @@
     }
   }
 
-  // ---------- Cálculo principal (Turno ∩ Lote) ----------
-  function updateCalculos(){
-    // Asegurar velocidad antes de calcular
-    updateVelocidadProgramada();
-
-    calc_err.classList.remove('show');
-    calc_err.textContent = '';
-
-    const turnoVal = turno.value;
-    const fechaStr = fecha.value || '';
-    const bounds = getShiftBoundsLocal(fechaStr, turnoVal);
-
-    const inicio = parseDateTimeLocal(env_inicio.value);
-    const fin = parseDateTimeLocal(env_fin.value); // si no hay fin, el lote sigue
-    const velProg = Number(vel_prog.value || 0);
-    const reales = Number(unid_reales.value || 0);
-
-    // Reset
-    unid_teoricas.value = '';
-    horas_atraso.value = '';
-    atraso_min_detalle.textContent = '';
-    delete atraso_min_detalle.dataset.minutos;
-    detalle_descuentos.textContent = '';
-
-    if(!bounds){ calc_err.textContent = 'Seleccione Fecha del turno y Turno.'; calc_err.classList.add('show'); validateParosVsAtraso(); updateProductividad(); return; }
-    if(!inicio){ calc_err.textContent = 'Ingrese Inicio del lote (fecha y hora).'; calc_err.classList.add('show'); validateParosVsAtraso(); updateProductividad(); return; }
-    if(!velProg){ calc_err.textContent = 'Seleccione el Producto para asignar la velocidad programada.'; calc_err.classList.add('show'); validateParosVsAtraso(); updateProductividad(); return; }
-
-    // Intersección: ventana = [max(inicio_turno, inicio_lote), min(fin_turno, fin_lote || fin_turno)]
-    let winStart = new Date(Math.max(bounds.start.getTime(), inicio.getTime()));
-    let winEnd = bounds.end;
-    if (fin) winEnd = new Date(Math.min(bounds.end.getTime(), fin.getTime()));
-
-    // Diagnósticos de ventana vacía
-    if (fin && fin <= bounds.start){
-      unid_teoricas.value = 0;
-      horas_atraso.value = (0).toFixed(2);
-      atraso_min_detalle.dataset.minutos = 0;
-      calc_err.textContent = 'El lote terminó antes de iniciar este turno. (Ventana vacía)';
-      calc_err.classList.add('show');
-      validateParosVsAtraso(); updateProductividad();
-      return;
-    }
-    if (inicio >= bounds.end){
-      unid_teoricas.value = 0;
-      horas_atraso.value = (0).toFixed(2);
-      atraso_min_detalle.dataset.minutos = 0;
-      calc_err.textContent = 'El lote inicia después de terminar este turno. (Ventana vacía)';
-      calc_err.classList.add('show');
-      validateParosVsAtraso(); updateProductividad();
-      return;
-    }
-    if(!(winStart < winEnd)){
-      unid_teoricas.value = 0;
-      horas_atraso.value = (0).toFixed(2);
-      atraso_min_detalle.dataset.minutos = 0;
-      calc_err.textContent = 'La ventana de cálculo quedó vacía. Verifique horarios.';
-      calc_err.classList.add('show');
-      validateParosVsAtraso(); updateProductividad();
-      return;
-    }
-
-    // Descuentos
-    const minutosBrutos = Math.max(0, minutesBetween(winStart, winEnd));
-    const descCasino = casinoMinutes(bounds, winStart, winEnd, turnoVal);
-    const base = Math.max(minutosBrutos - descCasino, 0);
-    const { work: minutosTrabajo, breaks: descPausas, count: cantPausas } = computeWorkAndBreaks(base);
-    const minutosEfectivos = Math.max(minutosTrabajo, 0);
-
-    // Teóricas
-    const teoricas = Math.floor(minutosEfectivos * velProg);
-    unid_teoricas.value = isFinite(teoricas) ? teoricas : '';
-
-    // Detalle
-    const casinoTxt = descCasino ? ` · Casino ${descCasino} min` : '';
-    const pausasTxt = cantPausas > 0 ? ` · Pausas ${cantPausas}×10 = ${descPausas} min` : ' · Pausas 0 min';
-    detalle_descuentos.textContent = `Ventana: ${fmtDateTime(winStart)} → ${fmtDateTime(winEnd)} | Bruto: ${Math.round(minutosBrutos)} min${casinoTxt}${pausasTxt} → Efectivo: ${Math.round(minutosEfectivos)} min`;
-
-    // Atraso (si hay reales)
-    if(isFinite(reales) && velProg>0){
-      const diffUnid = Math.max(teoricas - reales, 0);
-      const atrasoMin = (diffUnid / velProg) * 60;
-      horas_atraso.value = (atrasoMin/60).toFixed(2);
-      atraso_min_detalle.textContent = `≈ ${Math.round(atrasoMin)} min de atraso`;
-      atraso_min_detalle.dataset.minutos = Math.round(atrasoMin);
-    }
-
-    validateParosVsAtraso();
-    updateProductividad();
-  }
-
-  // ---------- Estibas (chips 000–999) ----------
-  let estibasArr = [];
-  function stripNonDigits(s){ return (s||'').replace(/\D+/g,''); }
-  function addEstiba(){
-    estiba_err.classList.remove('show');
-    let code = stripNonDigits(estiba_code.value);
-    if(code.length===0){ estiba_err.textContent='Ingrese un código de 3 dígitos (000–999).'; estiba_err.classList.add('show'); return; }
-    if(code.length<3) code = code.padStart(3,'0');
-    if(!/^\d{3}$/.test(code)){ estiba_err.textContent='Formato inválido. Use 3 dígitos, ej: 007.'; estiba_err.classList.add('show'); return; }
-    if(estibasArr.includes(code)){ estiba_err.textContent='Ese código ya fue agregado.'; estiba_err.classList.add('show'); return; }
-    estibasArr.push(code);
-    estiba_code.value='';
-    renderEstibas();
-  }
-  function renderEstibas(){
-    estibas_chiplist.innerHTML='';
-    estibasArr.forEach((c,idx)=>{
-      const chip=document.createElement('span'); chip.className='chip';
-      chip.innerHTML = `${c} <button title="Quitar" data-estiba="${idx}">×</button>`;
-      estibas_chiplist.appendChild(chip);
-    });
-    estibas_count.textContent = estibasArr.length;
-  }
-
-  // ---------- Paros (vertical) ----------
+  // -------- Paros (datos, render y validación) --------
   const parosData = { equipo:[], proceso:[], alistamiento:[], ausentismo:[], esteril:[], materiales:[] };
+
   function updateParosTotals(){
     const sumCat = arr=>arr.reduce((a,b)=>a+(Number(b.min)||0),0);
     let total=0;
@@ -535,6 +430,7 @@
     parosData[cat].forEach((it,idx)=>{
       const li=document.createElement('li'); li.className='paro-item';
       const safeJust = it.just ? it.just.replace(/</g,'&lt;') : 'Sin justificación';
+      // Sin espacios alrededor de la raya "–"
       li.innerHTML = `
         <div class="paro-min">${it.min} min</div>
         <div class="paro-just">${safeJust}</div>
@@ -582,22 +478,125 @@
     else{ paros_alerta.className='err'; paros_alerta.textContent=`No coincide: paros ${tot} min, atraso ${Math.round(atrasoMin)} min.`; }
   }
 
-  // ---------- Mensaje ----------
+  // -------- Cálculo principal (Turno ∩ Lote) --------
+  function updateCalculos(){
+    updateVelocidadProgramada();
+
+    calc_err.classList.remove('show');
+    calc_err.textContent = '';
+
+    const bounds = getShiftBoundsLocal(fecha.value || '');
+    const turnoNum = bounds?.turnoNum || '';
+    const turnoLabel = bounds?.label || '';
+    const inicio = parseDateTimeLocal(env_inicio.value);
+    const fin = parseDateTimeLocal(env_fin.value);
+    const velProg = Number(vel_prog.value || 0);
+    const reales = Number(unid_reales.value || 0);
+
+    // Reset salidas
+    unid_teoricas.value = '';
+    horas_atraso.value = '';
+    atraso_min_detalle.textContent = '';
+    delete atraso_min_detalle.dataset.minutos;
+    detalle_descuentos.textContent = '';
+
+    if(!bounds){ calc_err.textContent = 'Seleccione Fecha del turno y Turno.'; calc_err.classList.add('show'); validateParosVsAtraso(); updateProductividad(); return; }
+    if(!inicio){ calc_err.textContent = 'Ingrese Inicio del lote (fecha y hora).'; calc_err.classList.add('show'); validateParosVsAtraso(); updateProductividad(); return; }
+    if(!velProg){ calc_err.textContent = 'Seleccione el Producto para asignar la velocidad programada.'; calc_err.classList.add('show'); validateParosVsAtraso(); updateProductividad(); return; }
+
+    // Intersección: ventana = [max(inicio_turno, inicio_lote), min(fin_turno, fin_lote || fin_turno)]
+    let winStart = new Date(Math.max(bounds.start.getTime(), inicio.getTime()));
+    let winEnd = bounds.end;
+    if (fin) winEnd = new Date(Math.min(bounds.end.getTime(), fin.getTime()));
+
+    // Diagnósticos de ventana vacía
+    if (fin && fin <= bounds.start){
+      unid_teoricas.value = 0;
+      horas_atraso.value = (0).toFixed(2);
+      atraso_min_detalle.dataset.minutos = 0;
+      calc_err.textContent = 'El lote terminó antes de iniciar este turno. (Ventana vacía)';
+      calc_err.classList.add('show');
+      validateParosVsAtraso(); updateProductividad();
+      return;
+    }
+    if (inicio >= bounds.end){
+      unid_teoricas.value = 0;
+      horas_atraso.value = (0).toFixed(2);
+      atraso_min_detalle.dataset.minutos = 0;
+      calc_err.textContent = 'El lote inicia después de terminar este turno. (Ventana vacía)';
+      calc_err.classList.add('show');
+      validateParosVsAtraso(); updateProductividad();
+      return;
+    }
+    if(!(winStart < winEnd)){
+      unid_teoricas.value = 0;
+      horas_atraso.value = (0).toFixed(2);
+      atraso_min_detalle.dataset.minutos = 0;
+      calc_err.textContent = 'La ventana de cálculo quedó vacía. Verifique horarios.';
+      calc_err.classList.add('show');
+      validateParosVsAtraso(); updateProductividad();
+      return;
+    }
+
+    // Descuentos
+    const minutosBrutos = Math.max(0, minutesBetween(winStart, winEnd));
+    const descCasino = casinoMinutes(bounds, winStart, winEnd, turnoNum);
+    const base = Math.max(minutosBrutos - descCasino, 0);
+    const { work: minutosTrabajo, breaks: descPausas, count: cantPausas } = computeWorkAndBreaks(base);
+    const minutosEfectivos = Math.max(minutosTrabajo, 0);
+
+    // Teóricas
+    const teoricas = Math.floor(minutosEfectivos * velProg);
+    unid_teoricas.value = isFinite(teoricas) ? teoricas : '';
+
+    // Detalle
+    const casinoTxt = descCasino ? ` · Casino ${descCasino} min` : '';
+    const pausasTxt = cantPausas > 0 ? ` · Pausas ${cantPausas}×10 = ${descPausas} min` : ' · Pausas 0 min';
+    detalle_descuentos.textContent = `Ventana: ${fmtDateTime(winStart)} → ${fmtDateTime(winEnd)} | Bruto: ${Math.round(minutosBrutos)} min${casinoTxt}${pausasTxt} → Efectivo: ${Math.round(minutosEfectivos)} min`;
+
+    // Atraso (si hay reales)
+    if(isFinite(reales) && velProg>0){
+      const diffUnid = Math.max(teoricas - reales, 0);
+      const atrasoMin = (diffUnid / velProg) * 60;
+      horas_atraso.value = (atrasoMin/60).toFixed(2);
+      atraso_min_detalle.textContent = `≈ ${Math.round(atrasoMin)} min de atraso`;
+      atraso_min_detalle.dataset.minutos = Math.round(atrasoMin);
+    }
+
+    validateParosVsAtraso();
+    updateProductividad();
+  }
+
+  // -------- Mensaje (incluye Productividad y formato de PAROS sin espacios en separadores) --------
   function buildMessage(){
-    const f=fecha.value||''; const t=turno.value||''; const aus=ausentismos.value||'N/A';
-    const fl=fab_lote.value||'N/A'; const fe=fab_estado.value||'N/A'; const fp=(fab_pendientes.value||'N/A').trim();
-    const prod=env_producto.value||'N/A'; const elote=env_lote.value||'N/A';
-    const iniDT=parseDateTimeLocal(env_inicio.value); const finDT=parseDateTimeLocal(env_fin.value);
-    const ini=iniDT?fmtDateTime(iniDT):'N/A'; const fin=finDT?fmtDateTime(finDT):'N/A';
-    const vp=vel_prog.value||'N/A'; const vr=vel_real.value||'N/A';
-    const ut=unid_teoricas.value||'N/A'; const ur=unid_reales.value||'N/A';
+    const bounds = getShiftBoundsLocal(fecha.value || '');
+    const turnoNum = bounds?.turnoNum || '';
+    const turnoLabel = bounds?.label || '';
+
+    const f=fecha.value||''; 
+    const aus=ausentismos.value||'N/A';
+    const fl=fab_lote.value||'N/A'; 
+    const fe=fab_estado.value||'N/A'; 
+    const fp=(fab_pendientes.value||'N/A').trim();
+
+    const prod=env_producto.value||'N/A'; 
+    const elote=env_lote.value||'N/A';
+    const iniDT=parseDateTimeLocal(env_inicio.value); 
+    const finDT=parseDateTimeLocal(env_fin.value);
+    const ini=iniDT?fmtDateTime(iniDT):'N/A'; 
+    const fin=finDT?fmtDateTime(finDT):'N/A';
+    const vp=vel_prog.value||'N/A'; 
+    const vr=vel_real.value||'N/A';
+    const ut=unid_teoricas.value||'N/A'; 
+    const ur=unid_reales.value||'N/A';
     const prodTxt = productividad?.value ? productividad.value : 'N/D';
     const atrasoMinTxt = atraso_min_detalle.dataset.minutos ? `${atraso_min_detalle.dataset.minutos} min` : 'N/D';
-    const estList = estibasArr.length ? estibasArr.join(', ') : 'N/A';
+    const estTxt = (estibas_text.value||'').trim() || 'N/A';
 
     const lines=[];
     lines.push('ENTREGA DE TURNO – ALCOHOL');
-    lines.push(`Fecha: ${f} · Turno: ${t}`);
+    lines.push(`Fecha: ${f} · Turno: ${turnoNum}`);
+    lines.push(`Horario: ${turnoLabel}`);
     lines.push(`Ausentismos: ${aus}`);
     lines.push('');
     lines.push('FABRICACIÓN');
@@ -615,22 +614,27 @@
     lines.push(`- Unidades teóricas: ${ut}`);
     lines.push(`- Unidades reales: ${ur}`);
     lines.push(`- Productividad: ${prodTxt}`);
-    lines.push(`- Estibas (000–999): ${estList}`);
+    lines.push(`- Estibas: ${estTxt}`);
     lines.push(`- Atraso: ${horas_atraso.value||'0.00'} h (${atrasoMinTxt})`);
     lines.push('');
     lines.push('PAROS');
-    for(const [cat,label] of Object.entries({
-      equipo:'Equipo', proceso:'Proceso', alistamiento:'Alistamiento', ausentismo:'Ausentismo', esteril:'Novedad estéril', materiales:'Materiales'
-    })){
-      const arr=parosData[cat]; const sum=arr.reduce((a,b)=>a+(Number(b.min)||0),0);
-      lines.push(`${label} · Total: ${sum} min`);
-      if(arr.length===0){ lines.push('• —'); } else { arr.forEach(it=> lines.push(`• ${it.min} min – ${it.just||'Sin justificación'}`)); }
+    // Encabezados de categoría SIN espacios alrededor del "·"
+    const labels={equipo:'Equipo', proceso:'Proceso', alistamiento:'Alistamiento', ausentismo:'Ausentismo', esteril:'Novedad estéril', materiales:'Materiales'};
+    for(const [cat,label] of Object.entries(labels)){
+      const arr=parosData[cat]; 
+      const sum=arr.reduce((a,b)=>a+(Number(b.min)||0),0);
+      lines.push(`${label}·Total: ${sum} min`);
+      if(arr.length===0){ lines.push('•—'); }
+      else {
+        // Ítems SIN espacios alrededor de la raya "–"
+        arr.forEach(it=> lines.push(`• ${it.min} min–${it.just || 'Sin justificación'}`));
+      }
     }
     lines.push(`Total paros: ${paros_total.textContent} min`);
     return lines.join('\n');
   }
 
-  // ---------- Utilidades ----------
+  // -------- Utilidades varias --------
   function openWhatsApp(text){ const url=`https://wa.me/?text=${encodeURIComponent(text)}`; window.open(url,'_blank'); }
   function copyToClipboard(text){
     navigator.clipboard.writeText(text).then(()=>alert('Mensaje copiado al portapapeles.')).catch(()=>{
@@ -642,16 +646,16 @@
     ausentismos.value=''; fab_lote.value=''; fab_estado.value='N/A'; fab_pendientes.value='';
     env_producto.value=''; env_lote.value=''; env_inicio.value=''; env_fin.value='';
     vel_prog.value=''; vel_real.value=''; unid_teoricas.value=''; unid_reales.value=''; productividad.value='';
+    estibas_text.value='';
     horas_atraso.value=''; atraso_min_detalle.textContent=''; detalle_descuentos.textContent=''; calc_err.classList.remove('show'); calc_err.textContent='';
-    estibasArr=[]; renderEstibas();
     for(const k of Object.keys(parosData)){ parosData[k]=[]; renderParoList(k); }
     paros_total.textContent='0'; paros_alerta.className='muted'; paros_alerta.textContent='Se validará contra el atraso calculado.';
     mensaje.value=''; btn_whatsapp.disabled=true; btn_copiar.disabled=true;
-    fecha.valueAsDate=new Date(); turno.value='';
+    fecha.valueAsDate=new Date(); turnoSel.value='';
   }
 
-  // ---------- Eventos ----------
-  ;[fecha,turno,env_inicio,env_fin,vel_real].forEach(el=>{
+  // -------- Eventos --------
+  ;[fecha,turnoSel,env_inicio,env_fin,vel_real].forEach(el=>{
     el.addEventListener('input', updateCalculos);
     el.addEventListener('change', updateCalculos);
   });
@@ -660,15 +664,14 @@
   unid_reales.addEventListener('input',  ()=>{ updateProductividad(); });
   unid_reales.addEventListener('change', ()=>{ updateProductividad(); });
 
-  btn_add_estiba.addEventListener('click', addEstiba);
-  estiba_code.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); addEstiba(); }});
-  estibas_chiplist.addEventListener('click', e=>{
-    const t=e.target; if(t && t.matches('button[data-estiba]')){ estibasArr.splice(Number(t.getAttribute('data-estiba')),1); renderEstibas(); }
-  });
+  const btn_add_estiba = document.getElementById('btn_add_estiba'); // (si en el futuro revives chips)
+  // Paros
+  attachParoHandlers();
+  ['equipo','proceso','alistamiento','ausentismo','esteril','materiales'].forEach(renderParoList);
 
   function validateBeforeGenerate(){
     if(!fecha.value){ alert('Seleccione la Fecha del turno.'); return false; }
-    if(!turno.value){ alert('Seleccione el Turno.'); return false; }
+    if(!turnoSel.value){ alert('Seleccione el Turno (variante).'); return false; }
     if(!env_producto.value){ alert('Seleccione el Producto.'); return false; }
     if(!env_inicio.value){ alert('Ingrese Inicio del lote (fecha y hora).'); return false; }
     if(!vel_prog.value){ alert('La velocidad programada no se ha asignado (verifique Producto).'); return false; }
@@ -689,8 +692,7 @@
   btn_limpiar.addEventListener('click', e=>{ e.preventDefault(); clearForm(); });
 
   // Inicial
-  attachParoHandlers();
-  ['equipo','proceso','alistamiento','ausentismo','esteril','materiales'].forEach(renderParoList);
+  fab_estado.value = "N/A";
   updateVelocidadProgramada();
   updateCalculos();
   updateProductividad();
@@ -698,3 +700,4 @@
 </script>
 </body>
 </html>
+``
