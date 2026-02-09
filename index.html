@@ -283,7 +283,7 @@
   function fmtDateTime(d){ if(!d) return ''; return `${d.getFullYear()}-${two(d.getMonth()+1)}-${two(d.getDate())} ${two(d.getHours())}:${two(d.getMinutes())}`; }
   function minutesBetween(a,b){ return (b-a)/60000; }
 
-  // ======= Turnos (4 variantes, cruce de medianoche en 2_1500_0145) =======
+  // ======= Turnos (4 variantes) =======
   const fecha = document.getElementById('fecha');
   const turnoSel = document.getElementById('turno');
   function getShiftBoundsLocal(dateStr){
@@ -315,7 +315,6 @@
     return m;
   }
   function computeWorkAndBreaks(minutesBase){
-    // 10 min cada 120 min de TRABAJO EFECTIVO (iterativo)
     let work=Math.max(minutesBase,0), prev=-1, count=0, it=0;
     while(it<12){
       count=Math.floor(work/120);
@@ -350,6 +349,7 @@
   const detalle_descuentos = document.getElementById('detalle_descuentos');
   const calc_err = document.getElementById('calc_err');
 
+  // Paros: totales por categoría (DOM)
   const paros_alerta = document.getElementById('paros_alerta');
   const paros_total = document.getElementById('paros_total');
   const sums = {
@@ -446,7 +446,7 @@
         const refs = addInputs[cat];
         refs.err.classList.remove('show');
         const min = Number(refs.min.value);
-        // NO trim: respetamos tal cual escribió el supervisor
+        // Respetar el texto tal cual (sin trim)
         const just = String(refs.just.value || '');
         if(!isFinite(min) || min<=0){ refs.err.classList.add('show'); return; }
         parosData[cat].push({min:Math.round(min), just});
@@ -609,17 +609,17 @@
     lines.push('');
     lines.push('PAROS');
 
-    // Encabezados y listas: SIN espacios alrededor de "·" y "–",
-    // y **respetando** exactamente lo que diligenció el supervisor
+    // Usar SIEMPRE el total visible en UI (badge), no recalcular aquí
     const labels={equipo:'Equipo', proceso:'Proceso', alistamiento:'Alistamiento', ausentismo:'Ausentismo', esteril:'Novedad estéril', materiales:'Materiales'};
     for(const [cat,label] of Object.entries(labels)){
-      const arr=parosData[cat]; 
-      const sum=arr.reduce((a,b)=>a+(Number(b.min)||0),0);
-      lines.push(`${label}·Total: ${sum} min`);
-      if(arr.length===0){ lines.push('•—'); }
-      else {
-        // Justificación **tal cual** (sin trim ni sustituciones).
-        arr.forEach(it=> lines.push(`• ${it.min} min–${it.just ?? ''}`));
+      const arr=parosData[cat];
+      const catTotal = Number((sums[cat]?.textContent) || '0'); // <<-- total confiable
+      lines.push(`${label}·Total: ${catTotal} min`);
+      if(!arr || arr.length===0){ 
+        lines.push('•—'); 
+      } else {
+        // Ítems tal cual los diligenció el supervisor (sin recortes)
+        arr.forEach(it=> lines.push(`• ${Number(it.min)||0} min–${it.just ?? ''}`));
       }
     }
     lines.push(`Total paros: ${paros_total.textContent} min`);
@@ -701,4 +701,3 @@
 </script>
 </body>
 </html>
-``
