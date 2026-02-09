@@ -179,7 +179,7 @@
 
     <div class="rowline"></div>
 
-    <!-- PAROS: listas verticales con (min + justificación) -->
+    <!-- PAROS -->
     <div class="grid">
       <div class="col-12"><b>Paros</b> (agrega los ítems por categoría)</div>
 
@@ -283,7 +283,7 @@
   function fmtDateTime(d){ if(!d) return ''; return `${d.getFullYear()}-${two(d.getMonth()+1)}-${two(d.getDate())} ${two(d.getHours())}:${two(d.getMinutes())}`; }
   function minutesBetween(a,b){ return (b-a)/60000; }
 
-  // ---------- Turnos (4 variantes, con cruce de medianoche) ----------
+  // ---------- Turnos (4 variantes) ----------
   const fecha = document.getElementById('fecha');
   const turnoSel = document.getElementById('turno');
   function getShiftBoundsLocal(dateStr){
@@ -304,7 +304,6 @@
 
   // ---------- Descansos ----------
   function casinoMinutes(bounds, winStart, winEnd, turnoNum){
-    // T1: 12:00 (día base), T2: 19:00 (día base)
     let m=0;
     if(String(turnoNum)==='1'){
       const t=new Date(bounds.start); t.setHours(12,0,0,0);
@@ -316,7 +315,6 @@
     return m;
   }
   function computeWorkAndBreaks(minutesBase){
-    // 10 min cada 120 min de TRABAJO EFECTIVO (iterativo)
     let work=Math.max(minutesBase,0), prev=-1, count=0, it=0;
     while(it<12){
       count=Math.floor(work/120);
@@ -351,7 +349,6 @@
   const detalle_descuentos = document.getElementById('detalle_descuentos');
   const calc_err = document.getElementById('calc_err');
 
-  // Paros
   const paros_alerta = document.getElementById('paros_alerta');
   const paros_total = document.getElementById('paros_total');
   const sums = {
@@ -371,7 +368,7 @@
     materiales:{ min: document.getElementById('materiales_min'), just: document.getElementById('materiales_just'), list: document.getElementById('list_materiales'), err: document.getElementById('materiales_err') },
   };
 
-  // ---------- Velocidad programada (lee data-speed del option) ----------
+  // ---------- Velocidad programada ----------
   function getSelectedSpeed(){
     const opt = env_producto.selectedOptions && env_producto.selectedOptions[0];
     const ds = opt ? Number(opt.dataset.speed || '') : NaN;
@@ -395,7 +392,7 @@
     }
   }
 
-  // ---------- Atraso (centralizado y en horas) ----------
+  // ---------- Atraso (puro y en horas) ----------
   function setAtrasoHoras(minutos) {
     const min = Math.max(0, Math.round(Number(minutos || 0)));
     const horas = min / 60;
@@ -416,7 +413,7 @@
     setAtrasoHoras(atrasoMin);
   }
 
-  // ---------- Paros (datos, render y validación) ----------
+  // ---------- Paros ----------
   const parosData = { equipo:[], proceso:[], alistamiento:[], ausentismo:[], esteril:[], materiales:[] };
   function updateParosTotals(){
     const sumCat = arr=>arr.reduce((a,b)=>a+(Number(b.min)||0),0);
@@ -490,11 +487,11 @@
     const fin = parseDateTimeLocal(env_fin.value);
     const velProg = Number(vel_prog.value || 0);
 
-    // Reset salidas de cálculo
+    // Reset mínimos (no tocar horas_atraso aquí; lo gestiona recalc/setAtrasoHoras)
     unid_teoricas.value = '';
     detalle_descuentos.textContent = '';
 
-    // Guardas y salidas tempranas con atraso 0
+    // Salidas tempranas: fijar atraso 0 SIEMPRE
     if(!bounds){
       calc_err.textContent = 'Seleccione Fecha del turno y Turno.';
       calc_err.classList.add('show');
@@ -564,13 +561,13 @@
     const pausasTxt = cantPausas > 0 ? ` · Pausas ${cantPausas}×10 = ${descPausas} min` : ' · Pausas 0 min';
     detalle_descuentos.textContent = `Ventana: ${fmtDateTime(winStart)} → ${fmtDateTime(winEnd)} | Bruto: ${Math.round(minutosBrutos)} min${casinoTxt}${pausasTxt} → Efectivo: ${Math.round(minutosEfectivos)} min`;
 
-    // Atraso y validaciones
+    // Atraso y validaciones (en este orden)
     recalcAtraso();
     validateParosVsAtraso();
     updateProductividad();
   }
 
-  // ---------- Mensaje (incluye Productividad y formato de PAROS sin espacios en separadores) ----------
+  // ---------- Mensaje ----------
   function buildMessage(){
     const bounds = getShiftBoundsLocal(fecha.value || '');
     const turnoNum = bounds?.turnoNum || '';
@@ -621,14 +618,14 @@
     lines.push(`- Atraso: ${horas_atraso.value||'0.00'} h (${atrasoMinTxt})`);
     lines.push('');
     lines.push('PAROS');
-    // Encabezados de categoría SIN espacios alrededor del "·"
     const labels={equipo:'Equipo', proceso:'Proceso', alistamiento:'Alistamiento', ausentismo:'Ausentismo', esteril:'Novedad estéril', materiales:'Materiales'};
     for(const [cat,label] of Object.entries(labels)){
       const arr=parosData[cat]; 
       const sum=arr.reduce((a,b)=>a+(Number(b.min)||0),0);
+      // Sin espacios alrededor de "·"
       lines.push(`${label}·Total: ${sum} min`);
       if(arr.length===0){ lines.push('•—'); }
-      else { arr.forEach(it=> lines.push(`• ${it.min} min–${it.just || 'Sin justificación'}`)); }
+      else { arr.forEach(it=> lines.push(`• ${it.min} min–${it.just || 'Sin justificación'}`)); } // Sin espacios alrededor de "–"
     }
     lines.push(`Total paros: ${paros_total.textContent} min`);
     return lines.join('\n');
@@ -663,7 +660,7 @@
   env_producto.addEventListener('change', ()=>{ updateVelocidadProgramada(); updateCalculos(); });
   env_producto.addEventListener('input',  ()=>{ updateVelocidadProgramada(); updateCalculos(); });
 
-  // Reales: recalcular productividad, atraso y validación de paros en vivo
+  // Reales: recalcular productividad, atraso y validación de paros en vivo (sin re-ejecutar toda la lógica)
   unid_reales.addEventListener('input',  ()=>{ updateProductividad(); recalcAtraso(); validateParosVsAtraso(); });
   unid_reales.addEventListener('change', ()=>{ updateProductividad(); recalcAtraso(); validateParosVsAtraso(); });
 
@@ -709,4 +706,3 @@
 </script>
 </body>
 </html>
-``
