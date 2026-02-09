@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#0d6efd" />
+<title>🧴 Entrega de Turno – Alcohol</title>
+<style>
+  :root {
+    --c1:#0d6efd; --c2:#198754; --c3:#dc3545; --c4:#6c757d; --bg:#f4f6fb; --ink:#1f2937;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Color Emoji"; background: var(--bg); margin:0; color:var(--ink); }
+  header {
+    position: sticky; top:0; z-index:5; background:#fff; padding: .9rem 1rem calc(.6rem + env(safe-area-inset-top));
+    box-shadow: 0 4px 16px rgba(0,0,0,.06);
+  }
+  header h1{ margin:0; font-size:1.15rem; display:flex; gap:.5rem; align-items:center; }
+  header .sub { color:#64748b; font-size:.88rem; margin-top:.25rem; }
+  .wrap { padding:1rem; padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); max-width: 920px; margin: 0 auto; }
+  fieldset { border:1px solid #e5e7eb; border-radius:12px; margin: .9rem 0; padding: .85rem; background:#fff; }
+  legend { padding:0 .6rem; font-weight:700; color:#111827; }
+  .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap:.8rem .9rem; }
+  .col-12{grid-column: span 12;} .col-6{grid-column: span 6;} .col-4{grid-column:span 4;} .col-3{grid-column:span 3;} .col-2{grid-column:span 2;}
+  @media (max-width:760px){ .col-6,.col-4,.col-3,.col-2{grid-column:span 12;} }
+  label { display:block; font-size:.96rem; margin-bottom:.25rem; }
+  input, select, textarea {
+    width:100%; padding:.8rem .9rem; border:1px solid #d1d5db; border-radius:12px; background:#fff; font-size:1rem;
+    -webkit-tap-highlight-color: transparent;
+  }
+  input.readonly, textarea.readonly{ background:#f3f6fb; }
+  textarea { min-height:84px; resize: vertical; }
+  .hint { font-size:.84rem; color:#6b7280; }
+  .muted { color:#6b7280; font-size:.92rem; }
+  .kpi { background:#f8fafc; border:1px solid #e5e7eb; border-radius:12px; padding:.7rem .9rem; display:flex; gap:1rem; align-items:center; }
+  .kpi .val { font-weight:800; }
+  .ok { color: var(--c2); } .warn { color: #f59e0b; } .err { color: var(--c3); }
+  .rowline { border-top:1px dashed #e5e7eb; margin:.7rem 0 0; padding-top:.7rem; }
+  .pill { border-radius:999px; }
+  .section-emoji{ margin-right:.35rem; }
+  .actionbar {
+    position: fixed; left:0; right:0; bottom:0; z-index:10; background:#fff;
+    padding: .6rem .8rem calc(.6rem + env(safe-area-inset-bottom));
+    box-shadow: 0 -5px 20px rgba(0,0,0,.08); display:flex; gap:.5rem; justify-content:space-between; flex-wrap:wrap;
+  }
+  .actionbar button{
+    flex:1 1 48%; min-height:44px; border:none; border-radius:12px; color:#fff; font-weight:700; font-size:1rem; letter-spacing:.2px;
+  }
+  .primary{ background:var(--c1); } .success{ background:var(--c2);} .ghost{ background:#fff; color:#111; border:1px solid #d1d5db;}
+  .danger{ background:var(--c3);} .secondary{ background:var(--c4); color:#fff;}
+  .btn-full { flex-basis: 100%; }
+  .emoji-title{font-size:1.15rem;}
+</style>
+</head>
+<body>
+<header>
+  <h1 class="emoji-title">🧴 Entrega de Turno – Alcohol <span class="muted">· móvil</span></h1>
+  <div class="sub">Completa y toca <b>Generar</b> → <b>WhatsApp</b>. Calcula teóricas, atraso y valida paros.</div>
+</header>
+
+<div class="wrap">
+  <fieldset>
+    <legend>📅 Datos generales</legend>
+    <div class="grid">
+      <div class="col-6">
+        <label for="fecha">Fecha</label>
+        <input type="date" id="fecha" required />
+      </div>
+      <div class="col-6">
+        <label for="turno">Turno</label>
+        <select id="turno" required>
+          <option value="">-- Seleccione --</option>
+          <option value="1">Turno 1 (07:00–15:00)</option>
+          <option value="2">Turno 2 (15:00–23:00)</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <label for="ausentismos">👥 Ausentismos</label>
+        <input type="text" id="ausentismos" placeholder="Nombres, horas, observaciones..." inputmode="text"/>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>🏭 FABRICACIÓN</legend>
+    <div class="grid">
+      <div class="col-6">
+        <label for="fab_lote">Lote</label>
+        <input type="text" id="fab_lote" placeholder="Ej: AL-240215-01" />
+      </div>
+      <div class="col-6">
+        <label for="fab_estado">Estado</label>
+        <select id="fab_estado">
+          <option value="N/A">N/A</option>
+          <option value="En proceso">En proceso</option>
+          <option value="Pendiente">Pendiente</option>
+          <option value="Finalizado">Finalizado</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <label for="fab_pendientes">📝 Pendientes</label>
+        <textarea id="fab_pendientes" placeholder="Acciones abiertas, materiales, calidad, etc."></textarea>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>📦 ENVASE</legend>
+    <div class="grid">
+      <div class="col-12">
+        <label for="env_producto">Producto</label>
+        <select id="env_producto" required>
+          <option value="">-- Seleccione --</option>
+          <option>ALCOHOL 700ML</option>
+          <option>ALCOHOL 350 ML</option>
+          <option>ALCOHOL 120ML</option>
+          <option>ALCOHOL GARRAFA 37000 ML</option>
+          <option>MERTHIOLATE ROJO</option>
+          <option>MERTHIOLATE INCOLORO</option>
+          <option>ILOTICINA PLUS</option>
+          <option>ILOTICINA DUO</option>
+          <option>ILOTICINA PLUS MM</option>
+          <option>ILOTICINA DUO MM</option>
+        </select>
+      </div>
+      <div class="col-6">
+        <label for="env_lote">Lote</label>
+        <input type="text" id="env_lote" placeholder="Ej: ENV-240215-03" />
+      </div>
+      <div class="col-6">
+        <label>📐 Cálculo teóricas</label>
+        <div class="muted">
+          <label><input type="radio" name="calc_hasta" value="turno" checked /> Hasta fin de turno</label> &nbsp;&nbsp;
+          <label><input type="radio" name="calc_hasta" value="lote" /> Hasta fin de lote</label>
+        </div>
+      </div>
+
+      <div class="col-6">
+        <label for="env_inicio">🕒 Inicio del lote (fecha y hora)</label>
+        <input type="datetime-local" id="env_inicio" required />
+      </div>
+      <div class="col-6">
+        <label for="env_fin">🕘 Fin del lote (fecha y hora)</label>
+        <input type="datetime-local" id="env_fin" />
+        <div class="hint">Opcional (solo si eliges calcular hasta fin de lote).</div>
+      </div>
+
+      <div class="col-6">
+        <label for="vel_prog">🎯 Velocidad programada (frascos/min)</label>
+        <input type="number" id="vel_prog" class="readonly" readonly />
+        <div class="hint">Se autocompleta según el producto.</div>
+      </div>
+      <div class="col-6">
+        <label for="vel_real">⚙️ Velocidad real (frascos/min)</label>
+        <input type="number" id="vel_real" min="0" step="0.1" placeholder="Dato reportado por el supervisor" />
+      </div>
+
+      <div class="col-6">
+        <label for="unid_teoricas">📈 Unidades teóricas (auto)</label>
+        <input type="number" id="unid_teoricas" class="readonly" readonly />
+        <div class="muted" id="detalle_descuentos"></div>
+      </div>
+      <div class="col-6">
+        <label for="unid_reales">📦 Unidades reales</label>
+        <input type="number" id="unid_reales" min="0" />
+      </div>
+
+      <div class="col-6">
+        <label for="estibas">🧱 Estibas</label>
+        <input type="number" id="estibas" min="0" step="1" />
+      </div>
+      <div class="col-6">
+        <label for="horas_atraso">⏱️ Horas de atraso (auto)</label>
+        <input type="text" id="horas_atraso" class="readonly" readonly />
+        <div class="muted" id="atraso_min_detalle"></div>
+      </div>
+    </div>
+
+    <div class="rowline"></div>
+    <div class="grid">
+      <div class="col-12"><b>🛑 Paros por… (minutos)</b></div>
+      <div class="col-4">
+        <label for="paros_equipo">Equipo (min)</label>
+        <input type="number" id="paros_equipo" min="0" step="1" />
+      </div>
+      <div class="col-4">
+        <label for="paros_proceso">Proceso (min)</label>
+        <input type="number" id="paros_proceso" min="0" step="1" />
+      </div>
+      <div class="col-4">
+        <label for="paros_alistamiento">Alistamiento (min)</label>
+        <input type="number" id="paros_alistamiento" min="0" step="1" />
+      </div>
+      <div class="col-4">
+        <label for="paros_ausentismo">Ausentismo (min)</label>
+        <input type="number" id="paros_ausentismo" min="0" step="1" />
+      </div>
+      <div class="col-4">
+        <label for="paros_esteril">Novedad estéril (min)</label>
+        <input type="number" id="paros_esteril" min="0" step="1" />
+      </div>
+      <div class="col-4">
+        <label for="paros_materiales">Materiales (min)</label>
+        <input type="number" id="paros_materiales" min="0" step="1" />
+      </div>
+
+      <div class="col-12 kpi">
+        <div><b>Total paros</b> (min): <span class="val" id="paros_total">0</span></div>
+        <div id="paros_alerta" class="muted">Se validará contra el atraso calculado.</div>
+      </div>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>📤 Mensaje</legend>
+    <div class="grid">
+      <div class="col-12">
+        <label for="mensaje">Texto generado (WhatsApp)</label>
+        <textarea id="mensaje" class="readonly" readonly placeholder="Toca Generar para ver el mensaje…"></textarea>
+      </div>
+    </div>
+  </fieldset>
+</div>
+
+<div class="actionbar">
+  <button class="primary" id="btn_generar">✨ Generar</button>
+  <button class="success" id="btn_whatsapp" disabled>📲 WhatsApp</button>
+  <button class="ghost" id="btn_copiar" disabled>📋 Copiar</button>
+  <button class="secondary" id="btn_limpiar">🧹 Limpiar</button>
+</div>
+
+<script>
+(function(){
+  const speedMap = {
+    "ALCOHOL 700ML": 54,
+    "ALCOHOL 350 ML": 64,
+    "ALCOHOL 120ML": 67,
+    "ALCOHOL GARRAFA 37000 ML": 6,
+    "MERTHIOLATE ROJO": 12,
+    "MERTHIOLATE INCOLORO": 12,
+    "ILOTICINA PLUS": 10,
+    "ILOTICINA DUO": 10,
+    "ILOTICINA PLUS MM": 10,
+    "ILOTICINA DUO MM": 10
+  };
+
+  const fecha = document.getElementById('fecha');
+  const turno = document.getElementById('turno');
+  const ausentismos = document.getElementById('ausentismos');
+
+  const fab_lote = document.getElementById('fab_lote');
+  const fab_estado = document.getElementById('fab_estado');
+  const fab_pendientes = document.getElementById('fab_pendientes');
+
+  const env_producto = document.getElementById('env_producto');
+  const env_lote = document.getElementById('env_lote');
+  const env_inicio = document.getElementById('env_inicio');
+  const env_fin = document.getElementById('env_fin');
+  const vel_prog = document.getElementById('vel_prog');
+  const vel_real = document.getElementById('vel_real');
+  const unid_teoricas = document.getElementById('unid_teoricas');
+  const unid_reales = document.getElementById('unid_reales');
+  const estibas = document.getElementById('estibas');
+  const horas_atraso = document.getElementById('horas_atraso');
+  const atraso_min_detalle = document.getElementById('atraso_min_detalle');
+  const detalle_descuentos = document.getElementById('detalle_descuentos');
+
+  const paros_equipo = document.getElementById('paros_equipo');
+  const paros_proceso = document.getElementById('paros_proceso');
+  const paros_alistamiento = document.getElementById('paros_alistamiento');
+  const paros_ausentismo = document.getElementById('paros_ausentismo');
+  const paros_esteril = document.getElementById('paros_esteril');
+  const paros_materiales = document.getElementById('paros_materiales');
+  const paros_total = document.getElementById('paros_total');
+  const paros_alerta = document.getElementById('paros_alerta');
+
+  const btn_generar = document.getElementById('btn_generar');
+  const btn_whatsapp = document.getElementById('btn_whatsapp');
+  const btn_copiar = document.getElementById('btn_copiar');
+  const btn_limpiar = document.getElementById('btn_limpiar');
+  const mensaje = document.getElementById('mensaje');
+
+  const calcRadios = Array.from(document.querySelectorAll('input[name="calc_hasta"]'));
+
+  fecha.valueAsDate = new Date();
+  fab_estado.value = "N/A";
+
+  function parseDTLocal(v){
+    if(!v) return null;
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  }
+  function two(n){ return String(n).padStart(2,'0'); }
+  function fmtDateTime(d){
+    if(!d) return "";
+    return `${d.getFullYear()}-${two(d.getMonth()+1)}-${two(d.getDate())} ${two(d.getHours())}:${two(d.getMinutes())}`;
+  }
+  function getShiftBounds(dOnly, turnoVal){
+    if(!dOnly || !turnoVal) return null;
+    const base = new Date(dOnly);
+    const start = new Date(base), end = new Date(base);
+    if(turnoVal==='1'){ start.setHours(7,0,0,0); end.setHours(15,0,0,0); }
+    else if(turnoVal==='2'){ start.setHours(15,0,0,0); end.setHours(23,0,0,0); }
+    else return null;
+    return {start, end};
+  }
+  function minutesBetween(a,b){ return (b - a) / 60000; }
+
+  function updateVelocidadProgramada(){
+    const prod = env_producto.value;
+    vel_prog.value = prod && speedMap[prod] ? speedMap[prod] : "";
+  }
+
+  function updateParos(){
+    const vals = [
+      Number(paros_equipo.value||0),
+      Number(paros_proceso.value||0),
+      Number(paros_alistamiento.value||0),
+      Number(paros_ausentismo.value||0),
+      Number(paros_esteril.value||0),
+      Number(paros_materiales.value||0)
+    ];
+    const tot = vals.reduce((a,b)=>a+(isFinite(b)?b:0),0);
+    paros_total.textContent = Math.round(tot);
+    validateParosVsAtraso();
+  }
+
+  function validateParosVsAtraso(){
+    const atrasoTxt = atraso_min_detalle.dataset.minutos || "NaN";
+    const atrasoMin = Number(atrasoTxt);
+    const tot = Number(paros_total.textContent || 0);
+    if(!isFinite(atrasoMin) || atrasoMin<=0){
+      paros_alerta.className = "muted";
+      paros_alerta.textContent = "Se validará contra el atraso calculado.";
+      return;
+    }
+    const diff = Math.abs(tot - atrasoMin);
+    if(diff <= 1){
+      paros_alerta.className = "ok";
+      paros_alerta.textContent = `✅ OK: paros coinciden con el atraso (${Math.round(atrasoMin)} min).`;
+    } else if (diff <= 5){
+      paros_alerta.className = "warn";
+      paros_alerta.textContent = `⚠️ Revisa: diferencia de ${diff} min vs atraso calculado (${Math.round(atrasoMin)} min).`;
+    } else {
+      paros_alerta.className = "err";
+      paros_alerta.textContent = `❌ No coincide: paros ${tot} min, atraso ${Math.round(atrasoMin)} min.`;
+    }
+  }
+
+  function casinoMinutesInWindow(bounds, inicioEfectivo, finCalc, turnoVal){
+    let minutes = 0;
+    if(turnoVal==='1'){
+      const t1200 = new Date(bounds.start); t1200.setHours(12,0,0,0);
+      if(inicioEfectivo < t1200 && finCalc > t1200) minutes += 40;
+    } else if (turnoVal==='2'){
+      const t1900 = new Date(bounds.start); t1900.setHours(19,0,0,0);
+      if(inicioEfectivo < t1900 && finCalc > t1900) minutes += 40;
+    }
+    return minutes;
+  }
+
+  // 10 min cada 120 min de trabajo efectivo desde el inicio del lote (iterativo)
+  function computeWorkAndBreaks(minutesBase){
+    let work = Math.max(minutesBase, 0);
+    let prevCount = -1;
+    let count = 0;
+    let it = 0;
+    while (it < 10){
+      count = Math.floor(work / 120);
+      if(count === prevCount) break;
+      prevCount = count;
+      work = Math.max(minutesBase - count*10, 0);
+      it++;
+    }
+    return { work, breaks: count*10, count };
+  }
+
+  function updateCalculos(){
+    updateVelocidadProgramada();
+
+    const turnoVal = turno.value;
+    const fechaVal = fecha.value ? new Date(fecha.value) : null;
+    const bounds = getShiftBounds(fechaVal, turnoVal);
+
+    const inicio = parseDTLocal(env_inicio.value);
+    const fin = parseDTLocal(env_fin.value);
+    const velProg = Number(vel_prog.value || 0);
+    const reales = Number(unid_reales.value || 0);
+
+    unid_teoricas.value = "";
+    horas_atraso.value = "";
+    atraso_min_detalle.textContent = "";
+    delete atraso_min_detalle.dataset.minutos;
+    detalle_descuentos.textContent = "";
+
+    if(!bounds || !inicio || !velProg){
+      validateParosVsAtraso();
+      return;
+    }
+
+    const calcHasta = (document.querySelector('input[name="calc_hasta"]:checked')||{}).value || "turno";
+    let finCalc = bounds.end;
+    if(calcHasta === "lote" && fin){
+      finCalc = new Date(Math.min(fin.getTime(), bounds.end.getTime()));
+    }
+
+    const inicioEfectivo = new Date(Math.max(inicio.getTime(), bounds.start.getTime()));
+    if(inicioEfectivo >= finCalc){
+      unid_teoricas.value = 0;
+      horas_atraso.value = (0).toFixed(2);
+      atraso_min_detalle.dataset.minutos = 0;
+      validateParosVsAtraso();
+      return;
+    }
+
+    const minutosBrutos = Math.max(0, minutesBetween(inicioEfectivo, finCalc));
+    const descCasino = casinoMinutesInWindow(bounds, inicioEfectivo, finCalc, turnoVal);
+    const minutosBase = Math.max(minutosBrutos - descCasino, 0);
+
+    const { work: minutosTrabajo, breaks: descPausas, count: cantPausas } = computeWorkAndBreaks(minutosBase);
+    const minutosEfectivos = Math.max(minutosTrabajo, 0);
+
+    const teoricas = Math.floor(minutosEfectivos * velProg);
+    unid_teoricas.value = isFinite(teoricas) ? teoricas : "";
+
+    const casinoTxt = descCasino ? ` · 🍽️ Casino ${descCasino} min` : '';
+    const pausasTxt = cantPausas > 0 ? ` · 🧘 Pausas ${cantPausas}×10 = ${descPausas} min` : ' · 🧘 Pausas 0 min';
+    detalle_descuentos.textContent =
+      `Ventana: ${fmtDateTime(inicioEfectivo)} → ${fmtDateTime(finCalc)} | Bruto: ${Math.round(minutosBrutos)} min${casinoTxt}${pausasTxt} → Efectivo: ${Math.round(minutosEfectivos)} min`;
+
+    if(isFinite(reales) && velProg>0){
+      const diffUnidades = Math.max(teoricas - reales, 0);
+      const atrasoMin = (diffUnidades / velProg) * 60;
+      const atrasoHoras = atrasoMin / 60;
+      horas_atraso.value = atrasoHoras.toFixed(2);
+      atraso_min_detalle.textContent = `≈ ${Math.round(atrasoMin)} min de atraso`;
+      atraso_min_detalle.dataset.minutos = Math.round(atrasoMin);
+    }
+
+    validateParosVsAtraso();
+  }
+
+  function buildMessage(){
+    const f = fecha.value || '';
+    const t = turno.value || '';
+    const aus = ausentismos.value || 'N/A';
+
+    const fl = fab_lote.value || 'N/A';
+    const fe = fab_estado.value || 'N/A';
+    const fp = (fab_pendientes.value || 'N/A').trim();
+
+    const prod = env_producto.value || 'N/A';
+    const elote = env_lote.value || 'N/A';
+    const ini = parseDTLocal(env_inicio.value) ? fmtDateTime(parseDTLocal(env_inicio.value)) : 'N/A';
+    const fin = parseDTLocal(env_fin.value) ? fmtDateTime(parseDTLocal(env_fin.value)) : 'N/A';
+    const vp = vel_prog.value || 'N/A';
+    const vr = vel_real.value || 'N/A';
+    const ut = unid_teoricas.value || 'N/A';
+    const ur = unid_reales.value || 'N/A';
+    const est = estibas.value || 'N/A';
+    const ha = horas_atraso.value || '0.00';
+
+    const pe = Number(paros_equipo.value||0);
+    const pp = Number(paros_proceso.value||0);
+    const pa = Number(paros_alistamiento.value||0);
+    const pau = Number(paros_ausentismo.value||0);
+    const pn = Number(paros_esteril.value||0);
+    const pm = Number(paros_materiales.value||0);
+    const pt = Number(paros_total.textContent||0);
+    const atrasoMinTxt = atraso_min_detalle.dataset.minutos ? `${atraso_min_detalle.dataset.minutos} min` : 'N/D';
+
+    const calcHasta = (document.querySelector('input[name="calc_hasta"]:checked')||{}).value === 'lote' ? 'Fin del lote' : 'Fin del turno';
+
+    const lines = [];
+    lines.push(`🧴 ENTREGA DE TURNO – ALCOHOL`);
+    lines.push(`📅 Fecha: ${f} · 🕒 Turno: ${t}`);
+    lines.push(`👥 Ausentismos: ${aus}`);
+    lines.push(``);
+    lines.push(`🏭 FABRICACIÓN`);
+    lines.push(`- Lote: ${fl}`);
+    lines.push(`- Estado: ${fe}`);
+    lines.push(`- Pendientes: ${fp}`);
+    lines.push(``);
+    lines.push(`📦 ENVASE`);
+    lines.push(`- Producto: ${prod}`);
+    lines.push(`- Lote: ${elote}`);
+    lines.push(`- Inicio: ${ini}`);
+    lines.push(`- Fin: ${fin}`);
+    lines.push(`- 🎯 Vel. programada: ${vp} frascos/min`);
+    lines.push(`- ⚙️ Vel. real (reportada): ${vr} frascos/min`);
+    lines.push(`- 📐 Cálculo teóricas hasta: ${calcHasta}`);
+    lines.push(`- 📈 Unidades teóricas: ${ut}`);
+    lines.push(`- 📦 Unidades reales: ${ur}`);
+    lines.push(`- 🧱 Estibas: ${est}`);
+    lines.push(`- ⏱️ Horas de atraso: ${ha} h (${atrasoMinTxt})`);
+    lines.push(``);
+    lines.push(`🛑 Paros (min): Equipo ${pe} | Proceso ${pp} | Alistamiento ${pa} | Ausentismo ${pau} | Novedad estéril ${pn} | Materiales ${pm}`);
+    lines.push(`Total paros: ${pt} min`);
+
+    return lines.join('\n');
+  }
+
+  function openWhatsApp(text){
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  }
+
+  function copyToClipboard(text){
+    navigator.clipboard.writeText(text).then(()=>{
+      alert('Mensaje copiado al portapapeles.');
+    }).catch(()=>{
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select(); document.execCommand('copy');
+      document.body.removeChild(ta);
+      alert('Mensaje copiado (método alternativo).');
+    });
+  }
+
+  function clearForm(){
+    ausentismos.value = "";
+    fab_lote.value = "";
+    fab_estado.value = "N/A";
+    fab_pendientes.value = "";
+    env_producto.value = "";
+    env_lote.value = "";
+    env_inicio.value = "";
+    env_fin.value = "";
+    vel_prog.value = "";
+    vel_real.value = "";
+    unid_teoricas.value = "";
+    unid_reales.value = "";
+    estibas.value = "";
+    horas_atraso.value = "";
+    atraso_min_detalle.textContent = "";
+    detalle_descuentos.textContent = "";
+    paros_equipo.value = paros_proceso.value = paros_alistamiento.value = paros_ausentismo.value = paros_esteril.value = paros_materiales.value = "";
+    paros_total.textContent = "0";
+    paros_alerta.className = "muted";
+    paros_alerta.textContent = "Se validará contra el atraso calculado.";
+    mensaje.value = "";
+    btn_whatsapp.disabled = true;
+    btn_copiar.disabled = true;
+    fecha.valueAsDate = new Date();
+    turno.value = "";
+    (document.querySelector('input[name="calc_hasta"][value="turno"]')||{}).checked = true;
+  }
+
+  [fecha, turno, env_producto, env_inicio, env_fin, vel_real, unid_reales, ...calcRadios].forEach(el => {
+    el.addEventListener('change', updateCalculos);
+    el.addEventListener('input', updateCalculos);
+  });
+  [paros_equipo, paros_proceso, paros_alistamiento, paros_ausentismo, paros_esteril, paros_materiales].forEach(el=>{
+    el.addEventListener('input', updateParos);
+    el.addEventListener('change', updateParos);
+  });
+
+  btn_generar.addEventListener('click', (e)=>{
+    e.preventDefault();
+    if(!fecha.value || !turno.value || !env_producto.value || !env_inicio.value){
+      alert('Por favor completa al menos: Fecha, Turno, Producto e Inicio del lote.');
+      return;
+    }
+    updateCalculos();
+    const text = buildMessage();
+    mensaje.value = text;
+    btn_whatsapp.disabled = false;
+    btn_copiar.disabled = false;
+  });
+
+  btn_whatsapp.addEventListener('click', (e)=>{
+    e.preventDefault();
+    if(!mensaje.value){ alert('Primero genera el mensaje.'); return; }
+    openWhatsApp(mensaje.value);
+  });
+
+  btn_copiar.addEventListener('click', (e)=>{
+    e.preventDefault();
+    if(!mensaje.value){ alert('Primero genera el mensaje.'); return; }
+    copyToClipboard(mensaje.value);
+  });
+
+  btn_limpiar.addEventListener('click', (e)=>{ e.preventDefault(); clearForm(); });
+
+  updateCalculos();
+  updateParos();
+})();
+</script>
+</body>
+</html>
