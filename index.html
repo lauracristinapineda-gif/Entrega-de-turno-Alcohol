@@ -51,7 +51,7 @@
 <body>
 <header>
   <h1>Entrega de Turno – Alcohol</h1>
-  <div class="sub">Cálculo de teóricas (intersección Turno ∩ Lote), pausas/casino, paros detallados y WhatsApp.</div>
+  <div class="sub">Cálculo de teóricas (intersección Turno ∩ Lote), pausas/casino, productividad, paros y WhatsApp.</div>
 </header>
 
 <div class="wrap">
@@ -160,7 +160,7 @@
         <input type="number" id="unid_reales" min="0" />
       </div>
 
-      <!-- NUEVO: PRODUCTIVIDAD -->
+      <!-- PRODUCTIVIDAD -->
       <div class="col-12">
         <label for="productividad">Productividad (Unidades reales / Unidades teóricas)</label>
         <input type="text" id="productividad" class="readonly" readonly placeholder="0.00 %" />
@@ -376,7 +376,7 @@
   const btn_limpiar = document.getElementById('btn_limpiar');
   const mensaje = document.getElementById('mensaje');
 
-  // ---------- Velocidad programada (lee data-speed) ----------
+  // ---------- Velocidad programada (lee data-speed del option) ----------
   function getSelectedSpeed(){
     const opt = env_producto.selectedOptions && env_producto.selectedOptions[0];
     const ds = opt ? Number(opt.dataset.speed || '') : NaN;
@@ -395,8 +395,8 @@
 
   // ---------- Productividad ----------
   function updateProductividad(){
-    const ut = Number(unid_teoricas.value || 0);
-    const ur = Number(unid_reales.value || 0);
+    const ut = Number(unid_teoricas?.value || 0);
+    const ur = Number(unid_reales?.value || 0);
     if (isFinite(ut) && ut > 0 && isFinite(ur) && ur >= 0){
       const p = (ur / ut) * 100;
       productividad.value = `${p.toFixed(2)} %`;
@@ -591,7 +591,7 @@
     const ini=iniDT?fmtDateTime(iniDT):'N/A'; const fin=finDT?fmtDateTime(finDT):'N/A';
     const vp=vel_prog.value||'N/A'; const vr=vel_real.value||'N/A';
     const ut=unid_teoricas.value||'N/A'; const ur=unid_reales.value||'N/A';
-    const prodTxt = productividad.value ? productividad.value : 'N/D';
+    const prodTxt = productividad?.value ? productividad.value : 'N/D';
     const atrasoMinTxt = atraso_min_detalle.dataset.minutos ? `${atraso_min_detalle.dataset.minutos} min` : 'N/D';
     const estList = estibasArr.length ? estibasArr.join(', ') : 'N/A';
 
@@ -615,7 +615,7 @@
     lines.push(`- Unidades teóricas: ${ut}`);
     lines.push(`- Unidades reales: ${ur}`);
     lines.push(`- Productividad: ${prodTxt}`);
-    lines.push(`- Estibas (000–999): ${eStList = estList}`);
+    lines.push(`- Estibas (000–999): ${estList}`);
     lines.push(`- Atraso: ${horas_atraso.value||'0.00'} h (${atrasoMinTxt})`);
     lines.push('');
     lines.push('PAROS');
@@ -657,16 +657,9 @@
   });
   env_producto.addEventListener('change', ()=>{ updateVelocidadProgramada(); updateCalculos(); });
   env_producto.addEventListener('input',  ()=>{ updateVelocidadProgramada(); updateCalculos(); });
-  unid_reales.addEventListener('input',  ()=>{ updateProductividad(); updateCalculos(); });
-  unid_reales.addEventListener('change', ()=>{ updateProductividad(); updateCalculos(); });
+  unid_reales.addEventListener('input',  ()=>{ updateProductividad(); });
+  unid_reales.addEventListener('change', ()=>{ updateProductividad(); });
 
-  const btn_generar = document.getElementById('btn_generar');
-  const btn_whatsapp = document.getElementById('btn_whatsapp');
-  const btn_copiar = document.getElementById('btn_copiar');
-  const btn_limpiar = document.getElementById('btn_limpiar');
-  const mensaje = document.getElementById('mensaje');
-
-  const btn_add_estiba = document.getElementById('btn_add_estiba');
   btn_add_estiba.addEventListener('click', addEstiba);
   estiba_code.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); addEstiba(); }});
   estibas_chiplist.addEventListener('click', e=>{
