@@ -171,9 +171,9 @@
       </div>
 
       <div class="col-12">
-        <label for="horas_atraso">Horas de atraso (auto)</label>
-        <input type="text" id="horas_atraso" class="readonly" readonly />
-        <div class="muted" id="atraso_min_detalle"></div>
+        <label for="horas_atraso">Tiempo de atraso</label>
+        <input type="text" id="horas_atraso" class="readonly" readonly placeholder="min" />
+        <div class="muted" id="atraso_min_detalle" aria-live="polite"></div>
       </div>
     </div>
 
@@ -251,7 +251,7 @@
 
       <div class="col-12 kpi">
         <div><b>Total paros</b> (min): <span class="val" id="paros_total">0</span></div>
-        <div id="paros_alerta" class="muted">Se validará contra el atraso calculado.</div>
+        <div id="paros_alerta" class="muted" aria-live="polite">Se validará contra el atraso calculado.</div>
       </div>
     </div>
   </fieldset>
@@ -394,25 +394,25 @@
     }
   }
 
-  // ======= Atraso (puro y en horas) =======
-  function setAtrasoHoras(minutos) {
+  // ======= Atraso (en minutos) =======
+  function setAtrasoMinutos(minutos) {
     const min = Math.max(0, Math.round(Number(minutos || 0)));
-    const horas = min / 60;
-    horas_atraso.value = (isFinite(horas) ? horas : 0).toFixed(2);
-    const horasFmt = (isFinite(horas) ? horas : 0).toFixed(2);
-    atraso_min_detalle.textContent = `≈ ${horasFmt} h (${min} min)`;
+    // Campo muestra minutos directamente
+    horas_atraso.value = String(min);
+    // Texto auxiliar (y dataset para validación de paros) en minutos
+    atraso_min_detalle.textContent = `≈ ${min} min`;
     atraso_min_detalle.dataset.minutos = String(min);
   }
   function recalcAtraso() {
     const velProg = Number(vel_prog?.value || 0);
     const ut = Number(unid_teoricas?.value || 0);
     const ur = Number(unid_reales?.value || 0);
-    if (!isFinite(velProg) || velProg <= 0) { setAtrasoHoras(0); return; }
-    if (!isFinite(ut) || ut <= 0)         { setAtrasoHoras(0); return; }
-    if (!isFinite(ur) || ur <  0)         { setAtrasoHoras(0); return; }
+    if (!isFinite(velProg) || velProg <= 0) { setAtrasoMinutos(0); return; }
+    if (!isFinite(ut) || ut <= 0)         { setAtrasoMinutos(0); return; }
+    if (!isFinite(ur) || ur <  0)         { setAtrasoMinutos(0); return; }
     const diffUnid = Math.max(ut - ur, 0);
-    const atrasoMin = diffUnid > 0 ? (diffUnid / velProg) * 60 : 0;
-    setAtrasoHoras(atrasoMin);
+    const atrasoMin = diffUnid > 0 ? Math.round((diffUnid / velProg) * 60) : 0;
+    setAtrasoMinutos(atrasoMin);
   }
 
   // ======= Paros (datos, render, validación) =======
@@ -430,12 +430,24 @@
     list.innerHTML='';
     parosData[cat].forEach((it,idx)=>{
       const li=document.createElement('li'); li.className='paro-item';
-      const safeJust = (it.just && it.just.length>0) ? it.just.replace(/</g,'&lt;') : '';
-      li.innerHTML = `
-        <div class="paro-min">${Number(it.min)||0} min</div>
-        <div class="paro-just">${safeJust}</div>
-        <div class="paro-actions" style="margin-left:auto;"><button data-del="${cat}:${idx}">✖</button></div>
-      `;
+
+      const minDiv=document.createElement('div');
+      minDiv.className='paro-min';
+      minDiv.textContent = `${Number(it.min)||0} min`;
+
+      const justDiv=document.createElement('div');
+      justDiv.className='paro-just';
+      justDiv.textContent = it.just ?? '';
+
+      const actions=document.createElement('div');
+      actions.className='paro-actions';
+      actions.style.marginLeft='auto';
+      const btn=document.createElement('button');
+      btn.setAttribute('data-del', `${cat}:${idx}`);
+      btn.textContent='✖';
+      actions.appendChild(btn);
+
+      li.append(minDiv, justDiv, actions);
       list.appendChild(li);
     });
     updateParosTotals();
@@ -499,17 +511,17 @@
     if(!bounds){
       calc_err.textContent = 'Seleccione Fecha del turno y Turno.';
       calc_err.classList.add('show');
-      setAtrasoHoras(0); validateParosVsAtraso(); updateProductividad(); return;
+      setAtrasoMinutos(0); validateParosVsAtraso(); updateProductividad(); return;
     }
     if(!inicio){
       calc_err.textContent = 'Ingrese Inicio del lote (fecha y hora).';
       calc_err.classList.add('show');
-      setAtrasoHoras(0); validateParosVsAtraso(); updateProductividad(); return;
+      setAtrasoMinutos(0); validateParosVsAtraso(); updateProductividad(); return;
     }
     if(!isFinite(velProg) || velProg<=0){
       calc_err.textContent = 'Seleccione el Producto para asignar la velocidad programada.';
       calc_err.classList.add('show');
-      setAtrasoHoras(0); validateParosVsAtraso(); updateProductividad(); return;
+      setAtrasoMinutos(0); validateParosVsAtraso(); updateProductividad(); return;
     }
 
     // Intersección Turno ∩ Lote
@@ -521,19 +533,19 @@
       unid_teoricas.value = 0;
       calc_err.textContent = 'El lote terminó antes de iniciar este turno. (Ventana vacía)';
       calc_err.classList.add('show');
-      setAtrasoHoras(0); validateParosVsAtraso(); updateProductividad(); return;
+      setAtrasoMinutos(0); validateParosVsAtraso(); updateProductividad(); return;
     }
     if (inicio >= bounds.end){
       unid_teoricas.value = 0;
       calc_err.textContent = 'El lote inicia después de terminar este turno. (Ventana vacía)';
       calc_err.classList.add('show');
-      setAtrasoHoras(0); validateParosVsAtraso(); updateProductividad(); return;
+      setAtrasoMinutos(0); validateParosVsAtraso(); updateProductividad(); return;
     }
     if(!(winStart < winEnd)){
       unid_teoricas.value = 0;
       calc_err.textContent = 'La ventana de cálculo quedó vacía. Verifique horarios.';
       calc_err.classList.add('show');
-      setAtrasoHoras(0); validateParosVsAtraso(); updateProductividad(); return;
+      setAtrasoMinutos(0); validateParosVsAtraso(); updateProductividad(); return;
     }
 
     // Descuentos
@@ -606,7 +618,7 @@
     lines.push(`- Unidades reales: ${ur}`);
     lines.push(`- Productividad: ${prodTxt}`);
     lines.push(`- Estibas: ${estTxt}`);
-    lines.push(`- Atraso: ${horas_atraso.value||'0.00'} h (${atrasoMinTxt})`);
+    lines.push(`- Tiempo de atraso: ${atrasoMinTxt}`);
     lines.push('');
     lines.push('PAROS');
 
@@ -614,7 +626,7 @@
     const labels={equipo:'Equipo', proceso:'Proceso', alistamiento:'Alistamiento', ausentismo:'Ausentismo', esteril:'Novedad estéril', materiales:'Materiales'};
     for(const [cat,label] of Object.entries(labels)){
       const arr=parosData[cat] || [];
-      const catTotal = arr.reduce((t,it)=> t + (Number(it.min)||0), 0); // <<-- clave
+      const catTotal = arr.reduce((t,it)=> t + (Number(it.min)||0), 0);
       lines.push(`${label}·Total: ${catTotal} min`);
       if(arr.length===0){ 
         lines.push('•—'); 
@@ -640,7 +652,7 @@
     env_producto.value=''; env_lote.value=''; env_inicio.value=''; env_fin.value='';
     vel_prog.value=''; vel_real.value=''; unid_teoricas.value=''; unid_reales.value=''; productividad.value='';
     estibas_text.value='';
-    setAtrasoHoras(0);
+    setAtrasoMinutos(0);
     detalle_descuentos.textContent=''; calc_err.classList.remove('show'); calc_err.textContent='';
     for(const k of Object.keys(parosData)){ parosData[k]=[]; renderParoList(k); }
     paros_total.textContent='0'; paros_alerta.className='muted'; paros_alerta.textContent='Se validará contra el atraso calculado.';
@@ -685,7 +697,7 @@
     if(!validateBeforeGenerate()) return;
     updateCalculos();
     updateProductividad();
-    updateParosTotals(); // <<-- asegura UI sincronizada (mensaje usa parosData de todos modos)
+    updateParosTotals(); // asegura UI sincronizada (mensaje usa parosData de todos modos)
     const text = buildMessage();
     mensaje.value = text;
     btn_whatsapp.disabled=false; btn_copiar.disabled=false;
