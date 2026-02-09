@@ -315,6 +315,7 @@
     return m;
   }
   function computeWorkAndBreaks(minutesBase){
+    // 10 min cada 120 min de TRABAJO EFECTIVO (iterativo)
     let work=Math.max(minutesBase,0), prev=-1, count=0, it=0;
     while(it<12){
       count=Math.floor(work/120);
@@ -349,7 +350,7 @@
   const detalle_descuentos = document.getElementById('detalle_descuentos');
   const calc_err = document.getElementById('calc_err');
 
-  // Paros: totales por categoría (DOM)
+  // Paros
   const paros_alerta = document.getElementById('paros_alerta');
   const paros_total = document.getElementById('paros_total');
   const sums = {
@@ -431,7 +432,7 @@
       const li=document.createElement('li'); li.className='paro-item';
       const safeJust = (it.just && it.just.length>0) ? it.just.replace(/</g,'&lt;') : '';
       li.innerHTML = `
-        <div class="paro-min">${it.min} min</div>
+        <div class="paro-min">${Number(it.min)||0} min</div>
         <div class="paro-just">${safeJust}</div>
         <div class="paro-actions" style="margin-left:auto;"><button data-del="${cat}:${idx}">✖</button></div>
       `;
@@ -445,11 +446,11 @@
         const cat = btn.getAttribute('data-add');
         const refs = addInputs[cat];
         refs.err.classList.remove('show');
-        const min = Number(refs.min.value);
+        const min = Math.round(Number(refs.min.value));
         // Respetar el texto tal cual (sin trim)
         const just = String(refs.just.value || '');
         if(!isFinite(min) || min<=0){ refs.err.classList.add('show'); return; }
-        parosData[cat].push({min:Math.round(min), just});
+        parosData[cat].push({min, just});
         refs.min.value=''; refs.just.value='';
         renderParoList(cat);
       });
@@ -609,16 +610,16 @@
     lines.push('');
     lines.push('PAROS');
 
-    // Usar SIEMPRE el total visible en UI (badge), no recalcular aquí
+    // Totales por categoría: calcular DIRECTO desde parosData (no desde el DOM)
     const labels={equipo:'Equipo', proceso:'Proceso', alistamiento:'Alistamiento', ausentismo:'Ausentismo', esteril:'Novedad estéril', materiales:'Materiales'};
     for(const [cat,label] of Object.entries(labels)){
-      const arr=parosData[cat];
-      const catTotal = Number((sums[cat]?.textContent) || '0'); // <<-- total confiable
+      const arr=parosData[cat] || [];
+      const catTotal = arr.reduce((t,it)=> t + (Number(it.min)||0), 0); // <<-- clave
       lines.push(`${label}·Total: ${catTotal} min`);
-      if(!arr || arr.length===0){ 
+      if(arr.length===0){ 
         lines.push('•—'); 
       } else {
-        // Ítems tal cual los diligenció el supervisor (sin recortes)
+        // Ítems tal cual los diligenció el supervisor
         arr.forEach(it=> lines.push(`• ${Number(it.min)||0} min–${it.just ?? ''}`));
       }
     }
@@ -684,6 +685,7 @@
     if(!validateBeforeGenerate()) return;
     updateCalculos();
     updateProductividad();
+    updateParosTotals(); // <<-- asegura UI sincronizada (mensaje usa parosData de todos modos)
     const text = buildMessage();
     mensaje.value = text;
     btn_whatsapp.disabled=false; btn_copiar.disabled=false;
