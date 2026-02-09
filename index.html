@@ -105,19 +105,19 @@
     <div class="grid">
       <div class="col-12">
         <label for="env_producto">Producto</label>
-        <!-- OPCIONES con value EXACTO que coincide con speedMap -->
+        <!-- Cada opción lleva data-speed para autollenar -->
         <select id="env_producto" required>
           <option value="">-- Seleccione --</option>
-          <option value="ALCOHOL 700ML">ALCOHOL 700ML</option>
-          <option value="ALCOHOL 350 ML">ALCOHOL 350 ML</option>
-          <option value="ALCOHOL 120ML">ALCOHOL 120ML</option>
-          <option value="ALCOHOL GARRAFA 37000 ML">ALCOHOL GARRAFA 37000 ML</option>
-          <option value="MERTHIOLATE ROJO">MERTHIOLATE ROJO</option>
-          <option value="MERTHIOLATE INCOLORO">MERTHIOLATE INCOLORO</option>
-          <option value="ILOTICINA PLUS">ILOTICINA PLUS</option>
-          <option value="ILOTICINA DUO">ILOTICINA DUO</option>
-          <option value="ILOTICINA PLUS MM">ILOTICINA PLUS MM</option>
-          <option value="ILOTICINA DUO MM">ILOTICINA DUO MM</option>
+          <option value="ALCOHOL 700ML" data-speed="54">ALCOHOL 700ML</option>
+          <option value="ALCOHOL 350 ML" data-speed="64">ALCOHOL 350 ML</option>
+          <option value="ALCOHOL 120ML" data-speed="67">ALCOHOL 120ML</option>
+          <option value="ALCOHOL GARRAFA 37000 ML" data-speed="6">ALCOHOL GARRAFA 37000 ML</option>
+          <option value="MERTHIOLATE ROJO" data-speed="12">MERTHIOLATE ROJO</option>
+          <option value="MERTHIOLATE INCOLORO" data-speed="12">MERTHIOLATE INCOLORO</option>
+          <option value="ILOTICINA PLUS" data-speed="10">ILOTICINA PLUS</option>
+          <option value="ILOTICINA DUO" data-speed="10">ILOTICINA DUO</option>
+          <option value="ILOTICINA PLUS MM" data-speed="10">ILOTICINA PLUS MM</option>
+          <option value="ILOTICINA DUO MM" data-speed="10">ILOTICINA DUO MM</option>
         </select>
         <div id="prod_err" class="error-msg">Seleccione un producto válido para asignar la velocidad programada.</div>
       </div>
@@ -278,30 +278,7 @@
 
 <script>
 (function(){
-  // ---------- Velocidades ----------
-  const speedMap = {
-    "ALCOHOL 700ML": 54,
-    "ALCOHOL 350 ML": 64,
-    "ALCOHOL 120ML": 67,
-    "ALCOHOL GARRAFA 37000 ML": 6,
-    "MERTHIOLATE ROJO": 12,
-    "MERTHIOLATE INCOLORO": 12,
-    "ILOTICINA PLUS": 10,
-    "ILOTICINA DUO": 10,
-    "ILOTICINA PLUS MM": 10,
-    "ILOTICINA DUO MM": 10
-  };
-
-  // Llaves esperadas (para normalización robusta)
-  const PRODUCT_KEYS = Object.keys(speedMap);
-  function normalizeKey(s){ return (s || "").toString().trim().replace(/\s+/g, ' ').toUpperCase(); }
-  function resolveProductKey(raw){
-    const norm = normalizeKey(raw);
-    for(const k of PRODUCT_KEYS){ if (normalizeKey(k) === norm) return k; }
-    return null;
-  }
-
-  // ---------- Fechas (LOCAL) ----------
+  // ---------- Fechas (LOCAL, sin UTC) ----------
   function parseDateOnlyLocal(s){ if(!s) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,(m||1)-1,(d||1),0,0,0,0); }
   function parseDateTimeLocal(s){ if(!s) return null; const [date,time='00:00']=s.split('T'); const [y,m,d]=date.split('-').map(Number); const [hh,mm]=time.split(':').map(Number); return new Date(y,(m||1)-1,(d||1),(hh||0),(mm||0),0,0); }
   function two(n){ return String(n).padStart(2,'0'); }
@@ -324,8 +301,8 @@
     else if(turnoVal==='2'){ const t=new Date(bounds.start); t.setHours(19,0,0,0); if(winStart<t && winEnd>t) m+=40; }
     return m;
   }
-  // 10 min cada 120 min de TRABAJO EFECTIVO (iterativo)
   function computeWorkAndBreaks(minutesBase){
+    // 10 min cada 120 min de TRABAJO EFECTIVO (iterativo)
     let work=Math.max(minutesBase,0), prev=-1, count=0, it=0;
     while(it<12){
       count=Math.floor(work/120);
@@ -391,29 +368,28 @@
   const btn_limpiar = document.getElementById('btn_limpiar');
   const mensaje = document.getElementById('mensaje');
 
-  // Estado
-  let estibasArr = [];
-  const parosData = { equipo:[], proceso:[], alistamiento:[], ausentismo:[], esteril:[], materiales:[] };
-
-  // Inicial
-  fecha.valueAsDate = new Date();
-  fab_estado.value = "N/A";
-
-  // ---------- Velocidad programada (robusta) ----------
-  function updateVelocidadProgramada(){
-    const raw = env_producto.value;
-    const key = resolveProductKey(raw);
-    const v = (key && speedMap[key]) ? speedMap[key] : '';
-    vel_prog.value = v !== '' ? v : '';
-    prod_err.classList.toggle('show', v === '');
+  // ---------- Velocidad programada (dataset) ----------
+  function getSelectedSpeed(){
+    const opt = env_producto.selectedOptions && env_producto.selectedOptions[0];
+    const ds = opt ? Number(opt.dataset.speed || '') : NaN;
+    return isFinite(ds) && ds > 0 ? ds : NaN;
   }
-  // Dispara actualización al cambiar/escribir y al cargar
-  env_producto.addEventListener('change', ()=>{ updateVelocidadProgramada(); updateCalculos(); });
-  env_producto.addEventListener('input',  ()=>{ updateVelocidadProgramada(); updateCalculos(); });
-  document.addEventListener('DOMContentLoaded', updateVelocidadProgramada);
+  function updateVelocidadProgramada(){
+    const v = getSelectedSpeed();
+    if (isFinite(v)) {
+      vel_prog.value = v;
+      prod_err.classList.remove('show');
+    } else {
+      vel_prog.value = '';
+      prod_err.classList.add('show');
+    }
+  }
 
   // ---------- Cálculo principal (Turno ∩ Lote) ----------
   function updateCalculos(){
+    // Siempre asegurar velocidad antes de calcular
+    updateVelocidadProgramada();
+
     calc_err.classList.remove('show');
     calc_err.textContent = '';
 
@@ -500,6 +476,7 @@
   }
 
   // ---------- Estibas (chips 000–999) ----------
+  let estibasArr = [];
   function stripNonDigits(s){ return (s||'').replace(/\D+/g,''); }
   function addEstiba(){
     estiba_err.classList.remove('show');
@@ -523,6 +500,7 @@
   }
 
   // ---------- Paros (vertical) ----------
+  const parosData = { equipo:[], proceso:[], alistamiento:[], ausentismo:[], esteril:[], materiales:[] };
   function updateParosTotals(){
     const sumCat = arr=>arr.reduce((a,b)=>a+(Number(b.min)||0),0);
     let total=0;
@@ -654,6 +632,15 @@
     el.addEventListener('input', updateCalculos);
     el.addEventListener('change', updateCalculos);
   });
+  env_producto.addEventListener('change', ()=>{ updateVelocidadProgramada(); updateCalculos(); });
+  env_producto.addEventListener('input',  ()=>{ updateVelocidadProgramada(); updateCalculos(); });
+
+  const btn_generar = document.getElementById('btn_generar');
+  const btn_whatsapp = document.getElementById('btn_whatsapp');
+  const btn_copiar = document.getElementById('btn_copiar');
+  const btn_limpiar = document.getElementById('btn_limpiar');
+  const mensaje = document.getElementById('mensaje');
+
   btn_add_estiba.addEventListener('click', addEstiba);
   estiba_code.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); addEstiba(); }});
   estibas_chiplist.addEventListener('click', e=>{
@@ -684,6 +671,7 @@
   // Inicial
   attachParoHandlers();
   ['equipo','proceso','alistamiento','ausentismo','esteril','materiales'].forEach(renderParoList);
+  // Inicializar velocidad por si hay autocompletado del navegador
   updateVelocidadProgramada();
   updateCalculos();
 })();
