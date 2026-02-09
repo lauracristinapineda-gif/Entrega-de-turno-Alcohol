@@ -6,56 +6,50 @@
 <meta name="theme-color" content="#0d6efd" />
 <title>🧴 Entrega de Turno – Alcohol</title>
 <style>
-  :root {
-    --c1:#0d6efd; --c2:#198754; --c3:#dc3545; --c4:#6c757d; --bg:#f4f6fb; --ink:#1f2937;
-  }
+  :root { --c1:#0d6efd; --c2:#198754; --c3:#dc3545; --c4:#6b7280; --bg:#f4f6fb; --ink:#1f2937; }
   * { box-sizing: border-box; }
   body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Color Emoji"; background: var(--bg); margin:0; color:var(--ink); }
-  header {
-    position: sticky; top:0; z-index:5; background:#fff; padding: .9rem 1rem calc(.6rem + env(safe-area-inset-top));
-    box-shadow: 0 4px 16px rgba(0,0,0,.06);
-  }
+  header { position: sticky; top:0; z-index:5; background:#fff; padding: .9rem 1rem calc(.6rem + env(safe-area-inset-top)); box-shadow: 0 4px 16px rgba(0,0,0,.06); }
   header h1{ margin:0; font-size:1.15rem; display:flex; gap:.5rem; align-items:center; }
   header .sub { color:#64748b; font-size:.88rem; margin-top:.25rem; }
-  .wrap { padding:1rem; padding-bottom: calc(5.5rem + env(safe-area-inset-bottom)); max-width: 920px; margin: 0 auto; }
-  fieldset { border:1px solid #e5e7eb; border-radius:12px; margin: .9rem 0; padding: .85rem; background:#fff; }
+  .wrap { padding:1rem; padding-bottom: calc(6.2rem + env(safe-area-inset-bottom)); max-width: 960px; margin: 0 auto; }
+  fieldset { border:1px solid #e5e7eb; border-radius:12px; margin: .9rem 0; padding: .9rem; background:#fff; }
   legend { padding:0 .6rem; font-weight:700; color:#111827; }
   .grid { display:grid; grid-template-columns: repeat(12, 1fr); gap:.8rem .9rem; }
-  .col-12{grid-column: span 12;} .col-6{grid-column: span 6;} .col-4{grid-column:span 4;} .col-3{grid-column:span 3;} .col-2{grid-column:span 2;}
-  @media (max-width:760px){ .col-6,.col-4,.col-3,.col-2{grid-column:span 12;} }
+  .col-12{grid-column: span 12;} .col-8{grid-column: span 8;} .col-6{grid-column: span 6;} .col-4{grid-column:span 4;} .col-3{grid-column:span 3;}
+  @media (max-width:760px){ .col-8,.col-6,.col-4,.col-3{grid-column:span 12;} }
   label { display:block; font-size:.96rem; margin-bottom:.25rem; }
-  input, select, textarea {
-    width:100%; padding:.8rem .9rem; border:1px solid #d1d5db; border-radius:12px; background:#fff; font-size:1rem;
-    -webkit-tap-highlight-color: transparent;
-  }
+  input, select, textarea { width:100%; padding:.82rem .95rem; border:1px solid #d1d5db; border-radius:12px; background:#fff; font-size:1rem; -webkit-tap-highlight-color: transparent; }
   input.readonly, textarea.readonly{ background:#f3f6fb; }
-  textarea { min-height:84px; resize: vertical; }
+  textarea { min-height:88px; resize: vertical; }
   .hint { font-size:.84rem; color:#6b7280; }
   .muted { color:#6b7280; font-size:.92rem; }
-  .kpi { background:#f8fafc; border:1px solid #e5e7eb; border-radius:12px; padding:.7rem .9rem; display:flex; gap:1rem; align-items:center; }
+  .kpi { background:#f8fafc; border:1px solid #e5e7eb; border-radius:12px; padding:.7rem .9rem; display:flex; gap:1rem; align-items:center; flex-wrap:wrap;}
   .kpi .val { font-weight:800; }
   .ok { color: var(--c2); } .warn { color: #f59e0b; } .err { color: var(--c3); }
   .rowline { border-top:1px dashed #e5e7eb; margin:.7rem 0 0; padding-top:.7rem; }
-  .pill { border-radius:999px; }
-  .section-emoji{ margin-right:.35rem; }
-  .actionbar {
-    position: fixed; left:0; right:0; bottom:0; z-index:10; background:#fff;
-    padding: .6rem .8rem calc(.6rem + env(safe-area-inset-bottom));
-    box-shadow: 0 -5px 20px rgba(0,0,0,.08); display:flex; gap:.5rem; justify-content:space-between; flex-wrap:wrap;
-  }
-  .actionbar button{
-    flex:1 1 48%; min-height:44px; border:none; border-radius:12px; color:#fff; font-weight:700; font-size:1rem; letter-spacing:.2px;
-  }
-  .primary{ background:var(--c1); } .success{ background:var(--c2);} .ghost{ background:#fff; color:#111; border:1px solid #d1d5db;}
-  .danger{ background:var(--c3);} .secondary{ background:var(--c4); color:#fff;}
-  .btn-full { flex-basis: 100%; }
-  .emoji-title{font-size:1.15rem;}
+  .actionbar { position: fixed; left:0; right:0; bottom:0; z-index:10; background:#fff; padding: .6rem .8rem calc(.8rem + env(safe-area-inset-bottom)); box-shadow: 0 -5px 20px rgba(0,0,0,.08); display:flex; gap:.5rem; flex-wrap:wrap; }
+  .actionbar button{ flex:1 1 48%; min-height:46px; border:none; border-radius:12px; color:#fff; font-weight:700; font-size:1rem; letter-spacing:.2px; }
+  .primary{ background:var(--c1); } .success{ background:var(--c2);} .ghost{ background:#fff; color:#111; border:1px solid #d1d5db;} .secondary{ background:var(--c4); color:#fff;}
+  .badge { display:inline-block; background:#eef2ff; color:#1e3a8a; padding:.1rem .5rem; border-radius:999px; font-size:.78rem; }
+  /* Estibas (chips) */
+  .chiplist { display:flex; gap:.4rem; flex-wrap: wrap; margin-top:.5rem; }
+  .chip { background:#eef2ff; color:#1e3a8a; padding:.28rem .55rem; border-radius:999px; display:inline-flex; align-items:center; gap:.4rem; font-weight:700; }
+  .chip button { border:none; background:transparent; color:#1e3a8a; cursor:pointer; font-weight:900; }
+  /* Paros (listas verticales) */
+  .paro-form { display:flex; gap:.5rem; flex-wrap:wrap; }
+  .paro-form input[type="number"]{ max-width: 140px; }
+  .paro-list { margin:.5rem 0 0; padding:0; list-style:none; }
+  .paro-item { display:flex; align-items:flex-start; gap:.6rem; border:1px solid #e5e7eb; background:#f9fafb; border-radius:10px; padding:.5rem .6rem; margin-bottom:.5rem; }
+  .paro-min { font-weight:800; color:#111827; min-width:60px; }
+  .paro-just { color:#374151; white-space: pre-wrap; }
+  .paro-actions button { border:none; background:transparent; color:#dc2626; cursor:pointer; font-weight:800; }
 </style>
 </head>
 <body>
 <header>
-  <h1 class="emoji-title">🧴 Entrega de Turno – Alcohol <span class="muted">· móvil</span></h1>
-  <div class="sub">Completa y toca <b>Generar</b> → <b>WhatsApp</b>. Calcula teóricas, atraso y valida paros.</div>
+  <h1>🧴 Entrega de Turno – Alcohol</h1>
+  <div class="sub">Calcula teóricas según tu regla, resta pausas/casino, valida paros y genera WhatsApp.</div>
 </header>
 
 <div class="wrap">
@@ -128,11 +122,8 @@
         <input type="text" id="env_lote" placeholder="Ej: ENV-240215-03" />
       </div>
       <div class="col-6">
-        <label>📐 Cálculo teóricas</label>
-        <div class="muted">
-          <label><input type="radio" name="calc_hasta" value="turno" checked /> Hasta fin de turno</label> &nbsp;&nbsp;
-          <label><input type="radio" name="calc_hasta" value="lote" /> Hasta fin de lote</label>
-        </div>
+        <!-- (Se quitó el selector de cálculo, ahora es fijo según regla) -->
+        <div class="muted">Cálculo fijo: <span class="badge">Inicio lote → Fin turno</span> o <span class="badge">Inicio turno → Fin lote</span> si inició día anterior.</div>
       </div>
 
       <div class="col-6">
@@ -142,7 +133,7 @@
       <div class="col-6">
         <label for="env_fin">🕘 Fin del lote (fecha y hora)</label>
         <input type="datetime-local" id="env_fin" />
-        <div class="hint">Opcional (solo si eliges calcular hasta fin de lote).</div>
+        <div class="hint">Si el lote inició un día anterior, se usa este fin (si existe).</div>
       </div>
 
       <div class="col-6">
@@ -165,11 +156,18 @@
         <input type="number" id="unid_reales" min="0" />
       </div>
 
-      <div class="col-6">
-        <label for="estibas">🧱 Estibas</label>
-        <input type="number" id="estibas" min="0" step="1" />
+      <!-- ESTIBAS 000–999 -->
+      <div class="col-12">
+        <label>🧱 Estibas (códigos 000–999)</label>
+        <div class="paro-form">
+          <input id="estiba_code" type="text" inputmode="numeric" pattern="\\d{3}" maxlength="3" placeholder="Ej: 007" />
+          <button id="btn_add_estiba" class="ghost" type="button">➕ Agregar</button>
+          <div class="muted">Total: <span id="estibas_count">0</span></div>
+        </div>
+        <div class="chiplist" id="estibas_chiplist"></div>
       </div>
-      <div class="col-6">
+
+      <div class="col-12">
         <label for="horas_atraso">⏱️ Horas de atraso (auto)</label>
         <input type="text" id="horas_atraso" class="readonly" readonly />
         <div class="muted" id="atraso_min_detalle"></div>
@@ -177,31 +175,75 @@
     </div>
 
     <div class="rowline"></div>
+
+    <!-- PAROS POR CATEGORÍA: listas verticales con (min + justificación) -->
     <div class="grid">
-      <div class="col-12"><b>🛑 Paros por… (minutos)</b></div>
-      <div class="col-4">
-        <label for="paros_equipo">Equipo (min)</label>
-        <input type="number" id="paros_equipo" min="0" step="1" />
+      <div class="col-12"><b>🛑 Paros por…</b> (agrega los ítems por categoría)</div>
+
+      <!-- Equipo -->
+      <div class="col-12">
+        <label>⚙️ Equipo <span class="muted">(min + justificación)</span> · <span class="badge">Total: <span id="sum_equipo">0</span> min</span></label>
+        <div class="paro-form">
+          <input type="number" id="equipo_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="equipo_just" placeholder="Justificación..." />
+          <button class="ghost" type="button" data-add="equipo">➕ Agregar</button>
+        </div>
+        <ul class="paro-list" id="list_equipo"></ul>
       </div>
-      <div class="col-4">
-        <label for="paros_proceso">Proceso (min)</label>
-        <input type="number" id="paros_proceso" min="0" step="1" />
+
+      <!-- Proceso -->
+      <div class="col-12">
+        <label>🔁 Proceso · <span class="badge">Total: <span id="sum_proceso">0</span> min</span></label>
+        <div class="paro-form">
+          <input type="number" id="proceso_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="proceso_just" placeholder="Justificación..." />
+          <button class="ghost" type="button" data-add="proceso">➕ Agregar</button>
+        </div>
+        <ul class="paro-list" id="list_proceso"></ul>
       </div>
-      <div class="col-4">
-        <label for="paros_alistamiento">Alistamiento (min)</label>
-        <input type="number" id="paros_alistamiento" min="0" step="1" />
+
+      <!-- Alistamiento -->
+      <div class="col-12">
+        <label>🧰 Alistamiento · <span class="badge">Total: <span id="sum_alistamiento">0</span> min</span></label>
+        <div class="paro-form">
+          <input type="number" id="alistamiento_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="alistamiento_just" placeholder="Justificación..." />
+          <button class="ghost" type="button" data-add="alistamiento">➕ Agregar</button>
+        </div>
+        <ul class="paro-list" id="list_alistamiento"></ul>
       </div>
-      <div class="col-4">
-        <label for="paros_ausentismo">Ausentismo (min)</label>
-        <input type="number" id="paros_ausentismo" min="0" step="1" />
+
+      <!-- Ausentismo -->
+      <div class="col-12">
+        <label>👥 Ausentismo · <span class="badge">Total: <span id="sum_ausentismo">0</span> min</span></label>
+        <div class="paro-form">
+          <input type="number" id="ausentismo_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="ausentismo_just" placeholder="Justificación..." />
+          <button class="ghost" type="button" data-add="ausentismo">➕ Agregar</button>
+        </div>
+        <ul class="paro-list" id="list_ausentismo"></ul>
       </div>
-      <div class="col-4">
-        <label for="paros_esteril">Novedad estéril (min)</label>
-        <input type="number" id="paros_esteril" min="0" step="1" />
+
+      <!-- Novedad estéril -->
+      <div class="col-12">
+        <label>🧪 Novedad estéril · <span class="badge">Total: <span id="sum_esteril">0</span> min</span></label>
+        <div class="paro-form">
+          <input type="number" id="esteril_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="esteril_just" placeholder="Justificación..." />
+          <button class="ghost" type="button" data-add="esteril">➕ Agregar</button>
+        </div>
+        <ul class="paro-list" id="list_esteril"></ul>
       </div>
-      <div class="col-4">
-        <label for="paros_materiales">Materiales (min)</label>
-        <input type="number" id="paros_materiales" min="0" step="1" />
+
+      <!-- Materiales -->
+      <div class="col-12">
+        <label>📦 Materiales · <span class="badge">Total: <span id="sum_materiales">0</span> min</span></label>
+        <div class="paro-form">
+          <input type="number" id="materiales_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="materiales_just" placeholder="Justificación..." />
+          <button class="ghost" type="button" data-add="materiales">➕ Agregar</button>
+        </div>
+        <ul class="paro-list" id="list_materiales"></ul>
       </div>
 
       <div class="col-12 kpi">
@@ -231,6 +273,7 @@
 
 <script>
 (function(){
+  // Velocidades programadas
   const speedMap = {
     "ALCOHOL 700ML": 54,
     "ALCOHOL 350 ML": 64,
@@ -244,6 +287,7 @@
     "ILOTICINA DUO MM": 10
   };
 
+  // DOM refs
   const fecha = document.getElementById('fecha');
   const turno = document.getElementById('turno');
   const ausentismos = document.getElementById('ausentismos');
@@ -260,19 +304,41 @@
   const vel_real = document.getElementById('vel_real');
   const unid_teoricas = document.getElementById('unid_teoricas');
   const unid_reales = document.getElementById('unid_reales');
-  const estibas = document.getElementById('estibas');
+
+  // Estibas
+  const estiba_code = document.getElementById('estiba_code');
+  const btn_add_estiba = document.getElementById('btn_add_estiba');
+  const estibas_chiplist = document.getElementById('estibas_chiplist');
+  const estibas_count = document.getElementById('estibas_count');
+
+  // Atraso
   const horas_atraso = document.getElementById('horas_atraso');
   const atraso_min_detalle = document.getElementById('atraso_min_detalle');
   const detalle_descuentos = document.getElementById('detalle_descuentos');
 
-  const paros_equipo = document.getElementById('paros_equipo');
-  const paros_proceso = document.getElementById('paros_proceso');
-  const paros_alistamiento = document.getElementById('paros_alistamiento');
-  const paros_ausentismo = document.getElementById('paros_ausentismo');
-  const paros_esteril = document.getElementById('paros_esteril');
-  const paros_materiales = document.getElementById('paros_materiales');
-  const paros_total = document.getElementById('paros_total');
+  // Paros
   const paros_alerta = document.getElementById('paros_alerta');
+  const paros_total = document.getElementById('paros_total');
+
+  // Totales por categoría
+  const sums = {
+    equipo: document.getElementById('sum_equipo'),
+    proceso: document.getElementById('sum_proceso'),
+    alistamiento: document.getElementById('sum_alistamiento'),
+    ausentismo: document.getElementById('sum_ausentismo'),
+    esteril: document.getElementById('sum_esteril'),
+    materiales: document.getElementById('sum_materiales'),
+  };
+
+  // Inputs de adición por categoría
+  const addInputs = {
+    equipo: { min: document.getElementById('equipo_min'), just: document.getElementById('equipo_just'), list: document.getElementById('list_equipo') },
+    proceso:{ min: document.getElementById('proceso_min'), just: document.getElementById('proceso_just'), list: document.getElementById('list_proceso') },
+    alistamiento:{ min: document.getElementById('alistamiento_min'), just: document.getElementById('alistamiento_just'), list: document.getElementById('list_alistamiento') },
+    ausentismo:{ min: document.getElementById('ausentismo_min'), just: document.getElementById('ausentismo_just'), list: document.getElementById('list_ausentismo') },
+    esteril:{ min: document.getElementById('esteril_min'), just: document.getElementById('esteril_just'), list: document.getElementById('list_esteril') },
+    materiales:{ min: document.getElementById('materiales_min'), just: document.getElementById('materiales_just'), list: document.getElementById('list_materiales') },
+  };
 
   const btn_generar = document.getElementById('btn_generar');
   const btn_whatsapp = document.getElementById('btn_whatsapp');
@@ -280,49 +346,119 @@
   const btn_limpiar = document.getElementById('btn_limpiar');
   const mensaje = document.getElementById('mensaje');
 
-  const calcRadios = Array.from(document.querySelectorAll('input[name="calc_hasta"]'));
+  // Estado
+  let estibasArr = []; // ["007","145",...]
+  const parosData = { equipo:[], proceso:[], alistamiento:[], ausentismo:[], esteril:[], materiales:[] };
+  // cada item: {min: number, just: string}
 
+  // Utils
   fecha.valueAsDate = new Date();
   fab_estado.value = "N/A";
 
-  function parseDTLocal(v){
-    if(!v) return null;
-    const d = new Date(v);
-    return isNaN(d.getTime()) ? null : d;
-  }
+  function parseDTLocal(v){ if(!v) return null; const d = new Date(v); return isNaN(d.getTime()) ? null : d; }
   function two(n){ return String(n).padStart(2,'0'); }
-  function fmtDateTime(d){
-    if(!d) return "";
-    return `${d.getFullYear()}-${two(d.getMonth()+1)}-${two(d.getDate())} ${two(d.getHours())}:${two(d.getMinutes())}`;
-  }
-  function getShiftBounds(dOnly, turnoVal){
-    if(!dOnly || !turnoVal) return null;
-    const base = new Date(dOnly);
+  function fmtDateTime(d){ if(!d) return ""; return `${d.getFullYear()}-${two(d.getMonth()+1)}-${two(d.getDate())} ${two(d.getHours())}:${two(d.getMinutes())}`; }
+  function ymd(d){ return `${d.getFullYear()}-${two(d.getMonth()+1)}-${two(d.getDate())}`; }
+  function stripNonDigits(s){ return (s||'').replace(/\\D+/g,''); }
+  function minutesBetween(a,b){ return (b - a) / 60000; }
+  function getShiftBounds(dateOnly, turnoVal){
+    if(!dateOnly || !turnoVal) return null;
+    const base = new Date(dateOnly);
     const start = new Date(base), end = new Date(base);
     if(turnoVal==='1'){ start.setHours(7,0,0,0); end.setHours(15,0,0,0); }
     else if(turnoVal==='2'){ start.setHours(15,0,0,0); end.setHours(23,0,0,0); }
     else return null;
     return {start, end};
   }
-  function minutesBetween(a,b){ return (b - a) / 60000; }
 
   function updateVelocidadProgramada(){
     const prod = env_producto.value;
     vel_prog.value = prod && speedMap[prod] ? speedMap[prod] : "";
   }
 
-  function updateParos(){
-    const vals = [
-      Number(paros_equipo.value||0),
-      Number(paros_proceso.value||0),
-      Number(paros_alistamiento.value||0),
-      Number(paros_ausentismo.value||0),
-      Number(paros_esteril.value||0),
-      Number(paros_materiales.value||0)
-    ];
-    const tot = vals.reduce((a,b)=>a+(isFinite(b)?b:0),0);
-    paros_total.textContent = Math.round(tot);
+  // Casino: 12:00 (T1) y 19:00 (T2) si la ventana lo cruza (40 min)
+  function casinoMinutes(bounds, winStart, winEnd, turnoVal){
+    let m = 0;
+    if(turnoVal === '1'){
+      const t1200 = new Date(bounds.start); t1200.setHours(12,0,0,0);
+      if(winStart < t1200 && winEnd > t1200) m += 40;
+    } else if (turnoVal === '2'){
+      const t1900 = new Date(bounds.start); t1900.setHours(19,0,0,0);
+      if(winStart < t1900 && winEnd > t1900) m += 40;
+    }
+    return m;
+  }
+
+  // Pausas activas: 10 min cada 120 min de trabajo efectivo desde inicio del lote (iterativo)
+  function computeWorkAndBreaks(minutesBase){
+    let work = Math.max(minutesBase, 0);
+    let prevCount = -1, count = 0, it = 0;
+    while (it < 10){
+      count = Math.floor(work / 120);
+      if(count === prevCount) break;
+      prevCount = count;
+      work = Math.max(minutesBase - count*10, 0);
+      it++;
+    }
+    return { work, breaks: count*10, count };
+  }
+
+  function updateParosTotals(){
+    const catSum = (arr)=>arr.reduce((a,b)=>a + (Number(b.min)||0), 0);
+    let total = 0;
+    for(const k of Object.keys(parosData)){
+      const s = catSum(parosData[k]);
+      sums[k].textContent = s;
+      total += s;
+    }
+    paros_total.textContent = total;
     validateParosVsAtraso();
+  }
+
+  function renderParoList(cat){
+    const { list } = addInputs[cat];
+    list.innerHTML = "";
+    parosData[cat].forEach((item, idx)=>{
+      const li = document.createElement('li');
+      li.className = 'paro-item';
+      li.innerHTML = `
+        <div class="paro-min">${item.min} min</div>
+        <div class="paro-just">${item.just ? item.just : '<span class="muted">Sin justificación</span>'}</div>
+        <div class="paro-actions" style="margin-left:auto;">
+          <button title="Quitar" data-del="${cat}:${idx}">✖</button>
+        </div>
+      `;
+      list.appendChild(li);
+    });
+    updateParosTotals();
+  }
+
+  function attachParoHandlers(){
+    document.querySelectorAll('button[data-add]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const cat = btn.getAttribute('data-add');
+        const refs = addInputs[cat];
+        const min = Number(refs.min.value);
+        const just = String(refs.just.value||'').trim();
+        if(!isFinite(min) || min<=0){
+          alert('Ingresa minutos (>0) para agregar el paro.');
+          return;
+        }
+        parosData[cat].push({min: Math.round(min), just});
+        refs.min.value = '';
+        refs.just.value = '';
+        renderParoList(cat);
+      });
+    });
+    document.addEventListener('click', (e)=>{
+      const t = e.target;
+      if(t && t.matches('button[data-del]')){
+        const [cat, idxStr] = t.getAttribute('data-del').split(':');
+        const idx = Number(idxStr);
+        parosData[cat].splice(idx,1);
+        renderParoList(cat);
+      }
+    });
   }
 
   function validateParosVsAtraso(){
@@ -347,33 +483,7 @@
     }
   }
 
-  function casinoMinutesInWindow(bounds, inicioEfectivo, finCalc, turnoVal){
-    let minutes = 0;
-    if(turnoVal==='1'){
-      const t1200 = new Date(bounds.start); t1200.setHours(12,0,0,0);
-      if(inicioEfectivo < t1200 && finCalc > t1200) minutes += 40;
-    } else if (turnoVal==='2'){
-      const t1900 = new Date(bounds.start); t1900.setHours(19,0,0,0);
-      if(inicioEfectivo < t1900 && finCalc > t1900) minutes += 40;
-    }
-    return minutes;
-  }
-
-  // 10 min cada 120 min de trabajo efectivo desde el inicio del lote (iterativo)
-  function computeWorkAndBreaks(minutesBase){
-    let work = Math.max(minutesBase, 0);
-    let prevCount = -1;
-    let count = 0;
-    let it = 0;
-    while (it < 10){
-      count = Math.floor(work / 120);
-      if(count === prevCount) break;
-      prevCount = count;
-      work = Math.max(minutesBase - count*10, 0);
-      it++;
-    }
-    return { work, breaks: count*10, count };
-  }
+  function sameDay(d1, d2){ return d1 && d2 && d1.toDateString() === d2.toDateString(); }
 
   function updateCalculos(){
     updateVelocidadProgramada();
@@ -387,6 +497,7 @@
     const velProg = Number(vel_prog.value || 0);
     const reales = Number(unid_reales.value || 0);
 
+    // Reset vistas
     unid_teoricas.value = "";
     horas_atraso.value = "";
     atraso_min_detalle.textContent = "";
@@ -398,14 +509,20 @@
       return;
     }
 
-    const calcHasta = (document.querySelector('input[name="calc_hasta"]:checked')||{}).value || "turno";
-    let finCalc = bounds.end;
-    if(calcHasta === "lote" && fin){
-      finCalc = new Date(Math.min(fin.getTime(), bounds.end.getTime()));
+    // Regla de cálculo:
+    // - Normal: Inicio del lote → Fin del turno
+    // - Si inició un día anterior: Inicio del turno → Fin del lote (si hay fin; si no, hasta fin del turno)
+    let winStart, winEnd;
+    const startedPrevDay = inicio < bounds.start && !sameDay(inicio, bounds.start);
+    if (startedPrevDay){
+      winStart = bounds.start;
+      winEnd = fin ? new Date(Math.min(fin.getTime(), bounds.end.getTime())) : bounds.end;
+    } else {
+      winStart = new Date(Math.max(inicio.getTime(), bounds.start.getTime()));
+      winEnd = bounds.end; // ignorar fin de lote en el caso normal (como pediste)
     }
 
-    const inicioEfectivo = new Date(Math.max(inicio.getTime(), bounds.start.getTime()));
-    if(inicioEfectivo >= finCalc){
+    if(winStart >= winEnd){
       unid_teoricas.value = 0;
       horas_atraso.value = (0).toFixed(2);
       atraso_min_detalle.dataset.minutos = 0;
@@ -413,26 +530,29 @@
       return;
     }
 
-    const minutosBrutos = Math.max(0, minutesBetween(inicioEfectivo, finCalc));
-    const descCasino = casinoMinutesInWindow(bounds, inicioEfectivo, finCalc, turnoVal);
+    // Minutos brutos dentro de la ventana
+    const minutosBrutos = Math.max(0, minutesBetween(winStart, winEnd));
+    // Casino según turno (40 min si cruza 12:00 en T1 o 19:00 en T2)
+    const descCasino = casinoMinutes(bounds, winStart, winEnd, turnoVal);
+    // Base para pausas
     const minutosBase = Math.max(minutosBrutos - descCasino, 0);
-
+    // Pausas activas (10 min cada 120 min de trabajo efectivo)
     const { work: minutosTrabajo, breaks: descPausas, count: cantPausas } = computeWorkAndBreaks(minutosBase);
     const minutosEfectivos = Math.max(minutosTrabajo, 0);
 
     const teoricas = Math.floor(minutosEfectivos * velProg);
     unid_teoricas.value = isFinite(teoricas) ? teoricas : "";
 
+    // Detalle
     const casinoTxt = descCasino ? ` · 🍽️ Casino ${descCasino} min` : '';
     const pausasTxt = cantPausas > 0 ? ` · 🧘 Pausas ${cantPausas}×10 = ${descPausas} min` : ' · 🧘 Pausas 0 min';
-    detalle_descuentos.textContent =
-      `Ventana: ${fmtDateTime(inicioEfectivo)} → ${fmtDateTime(finCalc)} | Bruto: ${Math.round(minutosBrutos)} min${casinoTxt}${pausasTxt} → Efectivo: ${Math.round(minutosEfectivos)} min`;
+    detalle_descuentos.textContent = `Ventana: ${fmtDateTime(winStart)} → ${fmtDateTime(winEnd)} | Bruto: ${Math.round(minutosBrutos)} min${casinoTxt}${pausasTxt} → Efectivo: ${Math.round(minutosEfectivos)} min`;
 
+    // Horas de atraso
     if(isFinite(reales) && velProg>0){
-      const diffUnidades = Math.max(teoricas - reales, 0);
-      const atrasoMin = (diffUnidades / velProg) * 60;
-      const atrasoHoras = atrasoMin / 60;
-      horas_atraso.value = atrasoHoras.toFixed(2);
+      const diffUnid = Math.max(teoricas - reales, 0);
+      const atrasoMin = (diffUnid / velProg) * 60;
+      horas_atraso.value = (atrasoMin/60).toFixed(2);
       atraso_min_detalle.textContent = `≈ ${Math.round(atrasoMin)} min de atraso`;
       atraso_min_detalle.dataset.minutos = Math.round(atrasoMin);
     }
@@ -440,36 +560,79 @@
     validateParosVsAtraso();
   }
 
+  // -------- Estibas (chips 000–999) ----------
+  function addEstiba(){
+    let code = stripNonDigits(estiba_code.value);
+    if(code.length === 0){ alert('Ingresa un código de estiba de 3 dígitos (000–999).'); return; }
+    if(code.length < 3) code = code.padStart(3, '0');
+    if(!/^\\d{3}$/.test(code)){ alert('Formato inválido. Usa 3 dígitos, ej: 007.'); return; }
+    if(estibasArr.includes(code)){ alert('Ese código ya fue agregado.'); return; }
+    estibasArr.push(code);
+    estiba_code.value = '';
+    renderEstibas();
+  }
+  function renderEstibas(){
+    estibas_chiplist.innerHTML = '';
+    estibasArr.forEach((c, idx)=>{
+      const chip = document.createElement('span');
+      chip.className = 'chip';
+      chip.innerHTML = `${c} <button title="Quitar" data-estiba="${idx}">×</button>`;
+      estibas_chiplist.appendChild(chip);
+    });
+    estibas_count.textContent = estibasArr.length;
+  }
+  btn_add_estiba.addEventListener('click', addEstiba);
+  estiba_code.addEventListener('keydown', (e)=>{ if(e.key==='Enter'){ e.preventDefault(); addEstiba(); }});
+  estibas_chiplist.addEventListener('click', (e)=>{
+    const t = e.target;
+    if(t && t.matches('button[data-estiba]')){
+      const idx = Number(t.getAttribute('data-estiba'));
+      estibasArr.splice(idx,1);
+      renderEstibas();
+    }
+  });
+
+  // -------- Eventos y cálculos ----------
+  function updateVelocidadProgramada(){ vel_prog.value = env_producto.value && speedMap[env_producto.value] ? speedMap[env_producto.value] : ""; }
+
+  [fecha, turno, env_producto, env_inicio, env_fin, vel_real, unid_reales].forEach(el=>{
+    el.addEventListener('input', updateCalculos);
+    el.addEventListener('change', updateCalculos);
+  });
+
+  function copyToClipboard(text){
+    navigator.clipboard.writeText(text).then(()=> alert('Mensaje copiado al portapapeles.'))
+    .catch(()=>{
+      const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+      alert('Mensaje copiado (método alternativo).');
+    });
+  }
+  function openWhatsApp(text){ const url = `https://wa.me/?text=${encodeURIComponent(text)}`; window.open(url, '_blank'); }
+
+  function clearForm(){
+    ausentismos.value = ""; fab_lote.value = ""; fab_estado.value = "N/A"; fab_pendientes.value = "";
+    env_producto.value = ""; env_lote.value = ""; env_inicio.value = ""; env_fin.value = "";
+    vel_prog.value = ""; vel_real.value = ""; unid_teoricas.value = ""; unid_reales.value = "";
+    horas_atraso.value = ""; atraso_min_detalle.textContent = ""; detalle_descuentos.textContent = "";
+    estibasArr = []; renderEstibas();
+
+    for(const k of Object.keys(parosData)){ parosData[k] = []; renderParoList(k); }
+    paros_total.textContent = "0"; paros_alerta.className = "muted"; paros_alerta.textContent = "Se validará contra el atraso calculado.";
+    mensaje.value = ""; btn_whatsapp.disabled = true; btn_copiar.disabled = true;
+    fecha.valueAsDate = new Date(); turno.value = "";
+  }
+
+  // Construir mensaje
   function buildMessage(){
-    const f = fecha.value || '';
-    const t = turno.value || '';
-    const aus = ausentismos.value || 'N/A';
-
-    const fl = fab_lote.value || 'N/A';
-    const fe = fab_estado.value || 'N/A';
-    const fp = (fab_pendientes.value || 'N/A').trim();
-
-    const prod = env_producto.value || 'N/A';
-    const elote = env_lote.value || 'N/A';
+    const f = fecha.value || ''; const t = turno.value || ''; const aus = ausentismos.value || 'N/A';
+    const fl = fab_lote.value || 'N/A'; const fe = fab_estado.value || 'N/A'; const fp = (fab_pendientes.value || 'N/A').trim();
+    const prod = env_producto.value || 'N/A'; const elote = env_lote.value || 'N/A';
     const ini = parseDTLocal(env_inicio.value) ? fmtDateTime(parseDTLocal(env_inicio.value)) : 'N/A';
     const fin = parseDTLocal(env_fin.value) ? fmtDateTime(parseDTLocal(env_fin.value)) : 'N/A';
-    const vp = vel_prog.value || 'N/A';
-    const vr = vel_real.value || 'N/A';
-    const ut = unid_teoricas.value || 'N/A';
-    const ur = unid_reales.value || 'N/A';
-    const est = estibas.value || 'N/A';
-    const ha = horas_atraso.value || '0.00';
-
-    const pe = Number(paros_equipo.value||0);
-    const pp = Number(paros_proceso.value||0);
-    const pa = Number(paros_alistamiento.value||0);
-    const pau = Number(paros_ausentismo.value||0);
-    const pn = Number(paros_esteril.value||0);
-    const pm = Number(paros_materiales.value||0);
-    const pt = Number(paros_total.textContent||0);
+    const vp = vel_prog.value || 'N/A'; const vr = vel_real.value || 'N/A';
+    const ut = unid_teoricas.value || 'N/A'; const ur = unid_reales.value || 'N/A';
     const atrasoMinTxt = atraso_min_detalle.dataset.minutos ? `${atraso_min_detalle.dataset.minutos} min` : 'N/D';
-
-    const calcHasta = (document.querySelector('input[name="calc_hasta"]:checked')||{}).value === 'lote' ? 'Fin del lote' : 'Fin del turno';
+    const estList = estibasArr.length ? estibasArr.join(', ') : 'N/A';
 
     const lines = [];
     lines.push(`🧴 ENTREGA DE TURNO – ALCOHOL`);
@@ -488,103 +651,45 @@
     lines.push(`- Fin: ${fin}`);
     lines.push(`- 🎯 Vel. programada: ${vp} frascos/min`);
     lines.push(`- ⚙️ Vel. real (reportada): ${vr} frascos/min`);
-    lines.push(`- 📐 Cálculo teóricas hasta: ${calcHasta}`);
     lines.push(`- 📈 Unidades teóricas: ${ut}`);
     lines.push(`- 📦 Unidades reales: ${ur}`);
-    lines.push(`- 🧱 Estibas: ${est}`);
-    lines.push(`- ⏱️ Horas de atraso: ${ha} h (${atrasoMinTxt})`);
+    lines.push(`- 🧱 Estibas (000–999): ${estList}`);
+    lines.push(`- ⏱️ Atraso: ${horas_atraso.value || '0.00'} h (${atrasoMinTxt})`);
     lines.push(``);
-    lines.push(`🛑 Paros (min): Equipo ${pe} | Proceso ${pp} | Alistamiento ${pa} | Ausentismo ${pau} | Novedad estéril ${pn} | Materiales ${pm}`);
-    lines.push(`Total paros: ${pt} min`);
-
+    lines.push(`🛑 Paros`);
+    for(const [cat,label] of Object.entries({
+      equipo:'⚙️ Equipo', proceso:'🔁 Proceso', alistamiento:'🧰 Alistamiento', ausentismo:'👥 Ausentismo', esteril:'🧪 Novedad estéril', materiales:'📦 Materiales'
+    })){
+      const arr = parosData[cat];
+      const sum = arr.reduce((a,b)=>a+(Number(b.min)||0),0);
+      lines.push(`${label} · Total: ${sum} min`);
+      if(arr.length===0){ lines.push(`• —`); }
+      else arr.forEach(it=> lines.push(`• ${it.min} min – ${it.just || 'Sin justificación'}`));
+    }
+    lines.push(`Total paros: ${paros_total.textContent} min`);
     return lines.join('\n');
   }
 
-  function openWhatsApp(text){
-    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    window.open(url, '_blank');
-  }
-
-  function copyToClipboard(text){
-    navigator.clipboard.writeText(text).then(()=>{
-      alert('Mensaje copiado al portapapeles.');
-    }).catch(()=>{
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select(); document.execCommand('copy');
-      document.body.removeChild(ta);
-      alert('Mensaje copiado (método alternativo).');
-    });
-  }
-
-  function clearForm(){
-    ausentismos.value = "";
-    fab_lote.value = "";
-    fab_estado.value = "N/A";
-    fab_pendientes.value = "";
-    env_producto.value = "";
-    env_lote.value = "";
-    env_inicio.value = "";
-    env_fin.value = "";
-    vel_prog.value = "";
-    vel_real.value = "";
-    unid_teoricas.value = "";
-    unid_reales.value = "";
-    estibas.value = "";
-    horas_atraso.value = "";
-    atraso_min_detalle.textContent = "";
-    detalle_descuentos.textContent = "";
-    paros_equipo.value = paros_proceso.value = paros_alistamiento.value = paros_ausentismo.value = paros_esteril.value = paros_materiales.value = "";
-    paros_total.textContent = "0";
-    paros_alerta.className = "muted";
-    paros_alerta.textContent = "Se validará contra el atraso calculado.";
-    mensaje.value = "";
-    btn_whatsapp.disabled = true;
-    btn_copiar.disabled = true;
-    fecha.valueAsDate = new Date();
-    turno.value = "";
-    (document.querySelector('input[name="calc_hasta"][value="turno"]')||{}).checked = true;
-  }
-
-  [fecha, turno, env_producto, env_inicio, env_fin, vel_real, unid_reales, ...calcRadios].forEach(el => {
-    el.addEventListener('change', updateCalculos);
-    el.addEventListener('input', updateCalculos);
-  });
-  [paros_equipo, paros_proceso, paros_alistamiento, paros_ausentismo, paros_esteril, paros_materiales].forEach(el=>{
-    el.addEventListener('input', updateParos);
-    el.addEventListener('change', updateParos);
-  });
-
+  // Botones
   btn_generar.addEventListener('click', (e)=>{
     e.preventDefault();
     if(!fecha.value || !turno.value || !env_producto.value || !env_inicio.value){
-      alert('Por favor completa al menos: Fecha, Turno, Producto e Inicio del lote.');
+      alert('Completa: Fecha, Turno, Producto e Inicio del lote.');
       return;
     }
     updateCalculos();
     const text = buildMessage();
     mensaje.value = text;
-    btn_whatsapp.disabled = false;
-    btn_copiar.disabled = false;
+    btn_whatsapp.disabled = false; btn_copiar.disabled = false;
   });
-
-  btn_whatsapp.addEventListener('click', (e)=>{
-    e.preventDefault();
-    if(!mensaje.value){ alert('Primero genera el mensaje.'); return; }
-    openWhatsApp(mensaje.value);
-  });
-
-  btn_copiar.addEventListener('click', (e)=>{
-    e.preventDefault();
-    if(!mensaje.value){ alert('Primero genera el mensaje.'); return; }
-    copyToClipboard(mensaje.value);
-  });
-
+  btn_whatsapp.addEventListener('click', (e)=>{ e.preventDefault(); if(!mensaje.value){ alert('Genera el mensaje primero.'); return; } openWhatsApp(mensaje.value); });
+  btn_copiar.addEventListener('click', (e)=>{ e.preventDefault(); if(!mensaje.value){ alert('Genera el mensaje primero.'); return; } copyToClipboard(mensaje.value); });
   btn_limpiar.addEventListener('click', (e)=>{ e.preventDefault(); clearForm(); });
 
+  // Inicializaciones
   updateCalculos();
-  updateParos();
+  attachParoHandlers();
+  ['equipo','proceso','alistamiento','ausentismo','esteril','materiales'].forEach(renderParoList);
 })();
 </script>
 </body>
