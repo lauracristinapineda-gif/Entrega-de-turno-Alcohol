@@ -4,6 +4,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#0d6efd" />
+<!-- Sugerencias anti-cache (no garantizan 100% en GitHub Pages, pero ayudan) -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="0" />
 <title>Entrega de Turno – Alcohol</title>
 <style>
   :root { --c1:#0d6efd; --c2:#198754; --c3:#dc3545; --c4:#6b7280; --bg:#f4f6fb; --ink:#1f2937; }
@@ -11,7 +15,8 @@
   body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background: var(--bg); margin:0; color:#111827; }
   header { position: sticky; top:0; z-index:5; background:#fff; padding: .9rem 1rem calc(.6rem + env(safe-area-inset-top)); box-shadow: 0 4px 16px rgba(0,0,0,.06); }
   header h1{ margin:0; font-size:1.15rem; }
-  header .sub { color:#64748b; font-size:.88rem; margin-top:.25rem; }
+  header .sub { color:#64748b; font-size:.88rem; margin-top:.25rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;}
+  .version { font-size:.75rem; background:#eef2ff; color:#1e3a8a; padding:.1rem .45rem; border-radius:999px; }
   .wrap { padding:1rem; padding-bottom: calc(6.2rem + env(safe-area-inset-bottom)); max-width: 960px; margin: 0 auto; }
   fieldset { border:1px solid #e5e7eb; border-radius:12px; margin: .9rem 0; padding: .9rem; background:#fff; }
   legend { padding:0 .6rem; font-weight:700; color:#111827; }
@@ -46,7 +51,10 @@
 <body>
 <header>
   <h1>Entrega de Turno – Alcohol</h1>
-  <div class="sub">Cálculo de teóricas (Turno ∩ Lote), pausas/casino, productividad, paros y WhatsApp.</div>
+  <div class="sub">
+    <span>Cálculo de teóricas (Turno ∩ Lote), pausas/casino, productividad, paros y WhatsApp.</span>
+    <span class="version" id="app_version">fix-atra-01 · 2026-02-11</span>
+  </div>
 </header>
 
 <div class="wrap">
@@ -276,6 +284,10 @@
 
 <script>
 (function(){
+  // ======= Config / Debug =======
+  const APP_VERSION = 'fix-atra-01';
+  const DEBUG = true;
+
   // ======= Fechas (LOCAL) =======
   function parseDateOnlyLocal(s){ if(!s) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,(m||1)-1,(d||1),0,0,0,0); }
   function parseDateTimeLocal(s){ if(!s) return null; const [date,time='00:00']=s.split('T'); const [y,m,d]=date.split('-').map(Number); const [hh,mm]=time.split(':').map(Number); return new Date(y,(m||1)-1,(d||1),(hh||0),(mm||0),0,0); }
@@ -405,12 +417,16 @@
     const velProg = Number(vel_prog?.value || 0); // frascos/min
     const ut = Number(unid_teoricas?.value || 0);
     const ur = Number(unid_reales?.value || 0);
+
     if (!isFinite(velProg) || velProg <= 0) { setAtrasoMinutos(0); return; }
-    if (!isFinite(ut) || ut <= 0)         { setAtrasoMinutos(0); return; }
-    if (!isFinite(ur) || ur <  0)         { setAtrasoMinutos(0); return; }
-    const diffUnid = Math.max(ut - ur, 0);
-    // ✅ Atraso en minutos: unidades faltantes / (frascos/min)
-    const atrasoMin = diffUnid > 0 ? Math.ceil(diffUnid / velProg) : 0;
+    if (!isFinite(ut) || ut <= 0)           { setAtrasoMinutos(0); return; }
+    if (!isFinite(ur) || ur <  0)           { setAtrasoMinutos(0); return; }
+
+    const diffUnid = Math.max(ut - ur, 0);        // unidades faltantes
+    const atrasoMin = diffUnid > 0 ? Math.ceil(diffUnid / velProg) : 0; // ✅ SIN *60
+
+    if (DEBUG) console.log('[Atraso]', { diffUnid, velProg, atrasoMin });
+
     setAtrasoMinutos(atrasoMin);
   }
 
@@ -458,7 +474,6 @@
         const refs = addInputs[cat];
         refs.err.classList.remove('show');
         const min = Math.round(Number(refs.min.value));
-        // Respetar el texto tal cual (sin trim)
         const just = String(refs.just.value || '');
         if(!isFinite(min) || min<=0){ refs.err.classList.add('show'); return; }
         parosData[cat].push({min, just});
@@ -506,7 +521,7 @@
     unid_teoricas.value = '';
     detalle_descuentos.textContent = '';
 
-    // Salidas tempranas con atraso 0
+    // Validaciones
     if(!bounds){
       calc_err.textContent = 'Seleccione Fecha del turno y Turno.';
       calc_err.classList.add('show');
@@ -621,7 +636,6 @@
     lines.push('');
     lines.push('PAROS');
 
-    // Totales por categoría: calcular DIRECTO desde parosData (no desde el DOM)
     const labels={equipo:'Equipo', proceso:'Proceso', alistamiento:'Alistamiento', ausentismo:'Ausentismo', esteril:'Novedad estéril', materiales:'Materiales'};
     for(const [cat,label] of Object.entries(labels)){
       const arr=parosData[cat] || [];
@@ -630,7 +644,6 @@
       if(arr.length===0){ 
         lines.push('•—'); 
       } else {
-        // Ítems tal cual los diligenció el supervisor
         arr.forEach(it=> lines.push(`• ${Number(it.min)||0} min–${it.just ?? ''}`));
       }
     }
@@ -696,7 +709,7 @@
     if(!validateBeforeGenerate()) return;
     updateCalculos();
     updateProductividad();
-    updateParosTotals(); // asegura UI sincronizada (mensaje usa parosData de todos modos)
+    updateParosTotals();
     const text = buildMessage();
     mensaje.value = text;
     btn_whatsapp.disabled=false; btn_copiar.disabled=false;
@@ -706,6 +719,7 @@
   btn_limpiar.addEventListener('click', e=>{ e.preventDefault(); clearForm(); });
 
   // ======= Inicial =======
+  try { document.getElementById('app_version').textContent = `${APP_VERSION} · 2026-02-11`; } catch(e){}
   fab_estado.value = "N/A";
   updateVelocidadProgramada();
   updateCalculos();
@@ -714,4 +728,3 @@
 </script>
 </body>
 </html>
-``
