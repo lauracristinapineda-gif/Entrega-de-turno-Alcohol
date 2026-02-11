@@ -43,7 +43,7 @@
   .paro-item { display:flex; align-items:flex-start; gap:.6rem; border:1px solid #e5e7eb; background:#f9fafb; border-radius:10px; padding:.5rem .6rem; margin-bottom:.5rem; }
   .paro-min { font-weight:800; color:#111827; min-width:60px; }
   .paro-just { color:#374151; white-space: pre-wrap; }
-  .paro-actions button { border:none; background:transparent; color:#dc2626; cursor:pointer; font-weight:800; }
+  .paro-actions button { border:none; background:transparent; color:#dc3545; cursor:pointer; font-weight:800; }
   .error-msg { color:#dc3545; font-size:.85rem; margin-top:.25rem; display:none; }
   .show { display:block; }
 
@@ -57,7 +57,7 @@
   <h1>Entrega de Turno – Alcohol</h1>
   <div class="sub">
     <span>Cálculo de teóricas (Turno ∩ Lote), pausas/casino, productividad, paros y WhatsApp.</span>
-    <span class="version" id="app_version">fix-atra-04 · clic para recargar</span>
+    <span class="version" id="app_version">fix-atra-05 · clic para recargar</span>
   </div>
 </header>
 
@@ -192,6 +192,19 @@
         <input type="text" id="l1_horas_atraso" class="readonly" readonly placeholder="min" />
         <div class="muted" id="l1_atraso_min_detalle" aria-live="polite"></div>
         <div class="muted" id="l1_atraso_formula" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="rowline"></div>
+
+    <!-- NUEVO: RETRASO ALISTAMIENTO LOTE 1 -->
+    <div class="grid">
+      <div class="col-12"><b>Retraso alistamiento (Lote 1)</b> <span class="muted">No se suma al atraso ni al total de paros.</span></div>
+      <div class="col-12">
+        <div class="paro-form">
+          <input type="number" id="l1_ralist_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="l1_ralist_just" placeholder="Justificación..." />
+        </div>
       </div>
     </div>
 
@@ -345,6 +358,19 @@
 
     <div class="rowline"></div>
 
+    <!-- NUEVO: RETRASO ALISTAMIENTO LOTE 2 -->
+    <div class="grid">
+      <div class="col-12"><b>Retraso alistamiento (Lote 2)</b> <span class="muted">No se suma al atraso ni al total de paros.</span></div>
+      <div class="col-12">
+        <div class="paro-form">
+          <input type="number" id="l2_ralist_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="l2_ralist_just" placeholder="Justificación..." />
+        </div>
+      </div>
+    </div>
+
+    <div class="rowline"></div>
+
     <!-- PAROS LOTE 2 -->
     <div class="grid">
       <div class="col-12"><b>Paros Lote 2</b> (agrega los ítems por categoría)</div>
@@ -432,7 +458,7 @@
 
 <script>
 (function(){
-  const APP_VERSION = 'fix-atra-04';
+  const APP_VERSION = 'fix-atra-05';
 
   // ======= Utilidades de fecha/hora =======
   function parseDateOnlyLocal(s){ if(!s) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,(m||1)-1,(d||1),0,0,0,0); }
@@ -479,7 +505,7 @@
       count=Math.floor(work/120);
       if(count===prev) break;
       prev=count;
-      work=Math.max(minutesBase - count*10, 0);
+      work=Mathax(minutesBase - count*10, 0);
       it++;
     }
     return { work, breaks: count*10, count };
@@ -504,6 +530,10 @@
     const atraso_formula = document.getElementById(`${prefix}_atraso_formula`);
     const detalle_descuentos = document.getElementById(`${prefix}_detalle_descuentos`);
     const calc_err = document.getElementById(`${prefix}_calc_err`);
+
+    // NUEVO: Retraso alistamiento (independiente)
+    const ralist_min = document.getElementById(`${prefix}_ralist_min`);
+    const ralist_just = document.getElementById(`${prefix}_ralist_just`);
 
     // Paros UI
     const paros_alerta = document.getElementById(`${prefix}_paros_alerta`);
@@ -609,7 +639,6 @@
       updateParosTotals();
     }
     function attachParoHandlers(){
-      // agregar
       Object.entries(addInputs).forEach(([cat,refs])=>{
         refs.btn.addEventListener('click', ()=>{
           refs.err.classList.remove('show');
@@ -621,7 +650,6 @@
           renderParoList(cat);
         });
       });
-      // borrar
       document.addEventListener('click',(e)=>{
         const t=e.target;
         if(t && t.matches('button[data-del]')){
@@ -651,14 +679,12 @@
       detalle_descuentos.textContent = '';
       atraso_formula.textContent = '';
 
-      // Validaciones mínimas: si el producto no está, considera "no activo" y no muestra error salvo L1 (se maneja fuera)
       if(!bounds){
         calc_err.textContent = 'Seleccione Fecha del turno y Turno.';
         calc_err.classList.add('show');
         setAtrasoMinutos(0); validateParosVsAtraso(); updateProductividad(); return;
       }
       if(!env_producto.value){
-        // si no hay producto, se limpia
         setAtrasoMinutos(0); validateParosVsAtraso(); updateProductividad(); return;
       }
       if(!inicio){
@@ -721,7 +747,6 @@
     function buildLotMessage(title){
       if(!env_producto.value) return ''; // lote no diligenciado
       const bounds = getShiftBoundsLocal(fecha.value || '');
-      const turnoLabel = bounds?.label || '';
       const iniDT=parseDateTimeLocal(env_inicio.value); 
       const finDT=parseDateTimeLocal(env_fin.value);
       const ini=iniDT?fmtDateTime(iniDT):'N/A'; 
@@ -733,6 +758,11 @@
       const prodTxt = productividad?.value ? productividad.value : 'N/D';
       const atrasoMinTxt = atraso_min_detalle.dataset.minutos ? `${atraso_min_detalle.dataset.minutos} min` : 'N/D';
       const estTxt = (estibas_text.value||'').trim() || 'N/A';
+
+      // Nuevo: Retraso alistamiento (solo si hay datos)
+      const ralMin = Math.max(0, Math.round(Number(ralist_min.value || 0)));
+      const ralJust = String(ralist_just.value || '').trim();
+      const ralLine = (ralMin>0 || ralJust) ? `- Retraso alistamiento: ${ralMin} min${ralJust ? ' – ' + ralJust : ''}` : '';
 
       const lines=[];
       lines.push(title);
@@ -747,6 +777,7 @@
       lines.push(`- Productividad: ${prodTxt}`);
       lines.push(`- Estibas: ${estTxt}`);
       lines.push(`- Tiempo de atraso: ${atrasoMinTxt}`);
+      if(ralLine) lines.push(ralLine); // << NUEVO
       lines.push('');
       lines.push('PAROS');
 
@@ -775,6 +806,8 @@
     unid_reales.addEventListener('input',  ()=>{ updateProductividad(); recalcAtraso(); validateParosVsAtraso(); });
     unid_reales.addEventListener('change', ()=>{ updateProductividad(); recalcAtraso(); validateParosVsAtraso(); });
 
+    // No agregamos eventos especiales para retraso alistamiento (se lee al generar mensaje)
+
     attachParoHandlers();
     cats.forEach(renderParoList);
 
@@ -793,6 +826,8 @@
         env_producto.value=''; env_lote.value=''; env_inicio.value=''; env_fin.value='';
         vel_prog.value=''; vel_real.value=''; unid_teoricas.value=''; unid_reales.value=''; productividad.value='';
         estibas_text.value='';
+        if(ralist_min) ralist_min.value='';
+        if(ralist_just) ralist_just.value='';
         setAtrasoMinutos(0);
         detalle_descuentos.textContent=''; calc_err.classList.remove('show'); calc_err.textContent='';
         Object.keys(parosData).forEach(k=> parosData[k]=[]);
@@ -877,7 +912,7 @@
     if(!document.getElementById('l1_producto').value){ alert('[Lote 1] Seleccione el Producto.'); return false; }
     if(!document.getElementById('l1_inicio').value){ alert('[Lote 1] Ingrese Inicio del lote (fecha y hora).'); return false; }
     if(!document.getElementById('l1_vel_prog').value){ alert('[Lote 1] La velocidad programada no se ha asignado (verifique Producto).'); return false; }
-    // Lote 2 es opcional: si hay producto, valida mínimos
+    // Lote 2 opcional: si hay producto, valida mínimos
     if(!L2.validateRequired()) return false;
     return true;
   }
@@ -885,7 +920,7 @@
   btn_generar.addEventListener('click', (e)=>{
     e.preventDefault();
     if(!validateBeforeGenerate()) return;
-    // Recalcular ambos
+    // Recalcular ambos lotes
     L1.updateCalculos(); L1.updateProductividad();
     L2.updateCalculos(); L2.updateProductividad();
 
@@ -907,11 +942,9 @@
     });
   }
   fab_estado.value = "N/A";
-  // Calcular por si Fecha y Turno ya vienen colocados
   L1.updateVelocidadProgramada(); L1.updateCalculos(); L1.updateProductividad();
   L2.updateVelocidadProgramada(); L2.updateCalculos(); L2.updateProductividad();
 })();
 </script>
 </body>
 </html>
-``
