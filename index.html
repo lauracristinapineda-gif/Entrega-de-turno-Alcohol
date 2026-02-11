@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#0d6efd" />
-<!-- Sugerencias anti-cache (no garantizan 100% en GitHub Pages, pero ayudan) -->
+<!-- Anti-cache para ayudar en despliegues tipo GitHub Pages -->
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
@@ -15,8 +15,8 @@
   body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background: var(--bg); margin:0; color:#111827; }
   header { position: sticky; top:0; z-index:5; background:#fff; padding: .9rem 1rem calc(.6rem + env(safe-area-inset-top)); box-shadow: 0 4px 16px rgba(0,0,0,.06); }
   header h1{ margin:0; font-size:1.15rem; }
-  header .sub { color:#64748b; font-size:.88rem; margin-top:.25rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center;}
-  .version { font-size:.75rem; background:#eef2ff; color:#1e3a8a; padding:.1rem .45rem; border-radius:999px; }
+  header .sub { color:#64748b; font-size:.88rem; margin-top:.25rem; display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+  .version { font-size:.75rem; background:#eef2ff; color:#1e3a8a; padding:.1rem .45rem; border-radius:999px; cursor:pointer; user-select:none; }
   .wrap { padding:1rem; padding-bottom: calc(6.2rem + env(safe-area-inset-bottom)); max-width: 960px; margin: 0 auto; }
   fieldset { border:1px solid #e5e7eb; border-radius:12px; margin: .9rem 0; padding: .9rem; background:#fff; }
   legend { padding:0 .6rem; font-weight:700; color:#111827; }
@@ -53,7 +53,7 @@
   <h1>Entrega de Turno – Alcohol</h1>
   <div class="sub">
     <span>Cálculo de teóricas (Turno ∩ Lote), pausas/casino, productividad, paros y WhatsApp.</span>
-    <span class="version" id="app_version">fix-atra-01 · 2026-02-11</span>
+    <span class="version" id="app_version">fix-atra-02 · clic para recargar</span>
   </div>
 </header>
 
@@ -182,6 +182,7 @@
         <label for="horas_atraso">Tiempo de atraso</label>
         <input type="text" id="horas_atraso" class="readonly" readonly placeholder="min" />
         <div class="muted" id="atraso_min_detalle" aria-live="polite"></div>
+        <div class="muted" id="atraso_formula" aria-live="polite"></div>
       </div>
     </div>
 
@@ -284,9 +285,7 @@
 
 <script>
 (function(){
-  // ======= Config / Debug =======
-  const APP_VERSION = 'fix-atra-01';
-  const DEBUG = true;
+  const APP_VERSION = 'fix-atra-02';
 
   // ======= Fechas (LOCAL) =======
   function parseDateOnlyLocal(s){ if(!s) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,(m||1)-1,(d||1),0,0,0,0); }
@@ -361,6 +360,7 @@
   const atraso_min_detalle = document.getElementById('atraso_min_detalle');
   const detalle_descuentos = document.getElementById('detalle_descuentos');
   const calc_err = document.getElementById('calc_err');
+  const atraso_formula = document.getElementById('atraso_formula');
 
   // Paros
   const paros_alerta = document.getElementById('paros_alerta');
@@ -418,16 +418,16 @@
     const ut = Number(unid_teoricas?.value || 0);
     const ur = Number(unid_reales?.value || 0);
 
-    if (!isFinite(velProg) || velProg <= 0) { setAtrasoMinutos(0); return; }
-    if (!isFinite(ut) || ut <= 0)           { setAtrasoMinutos(0); return; }
-    if (!isFinite(ur) || ur <  0)           { setAtrasoMinutos(0); return; }
+    if (!isFinite(velProg) || velProg <= 0) { setAtrasoMinutos(0); atraso_formula.textContent=''; return; }
+    if (!isFinite(ut) || ut <= 0)           { setAtrasoMinutos(0); atraso_formula.textContent=''; return; }
+    if (!isFinite(ur) || ur <  0)           { setAtrasoMinutos(0); atraso_formula.textContent=''; return; }
 
-    const diffUnid = Math.max(ut - ur, 0);        // unidades faltantes
+    const diffUnid = Math.max(ut - ur, 0);              // unidades faltantes
     const atrasoMin = diffUnid > 0 ? Math.ceil(diffUnid / velProg) : 0; // ✅ SIN *60
 
-    if (DEBUG) console.log('[Atraso]', { diffUnid, velProg, atrasoMin });
-
     setAtrasoMinutos(atrasoMin);
+    // Mostrar fórmula y datos usados
+    atraso_formula.textContent = `Fórmula: ceil((${ut} – ${ur}) / ${velProg}) = ${atrasoMin} min`;
   }
 
   // ======= Paros (datos, render, validación) =======
@@ -520,6 +520,7 @@
     // Reset mínimos
     unid_teoricas.value = '';
     detalle_descuentos.textContent = '';
+    atraso_formula.textContent = '';
 
     // Validaciones
     if(!bounds){
@@ -719,7 +720,14 @@
   btn_limpiar.addEventListener('click', e=>{ e.preventDefault(); clearForm(); });
 
   // ======= Inicial =======
-  try { document.getElementById('app_version').textContent = `${APP_VERSION} · 2026-02-11`; } catch(e){}
+  const verEl = document.getElementById('app_version');
+  if (verEl) {
+    verEl.textContent = `${APP_VERSION} · clic para recargar`;
+    verEl.addEventListener('click', ()=>{
+      const base = location.href.split('?')[0];
+      location.href = `${base}?v=${Date.now()}`; // cache buster
+    });
+  }
   fab_estado.value = "N/A";
   updateVelocidadProgramada();
   updateCalculos();
