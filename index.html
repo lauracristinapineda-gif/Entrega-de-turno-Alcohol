@@ -46,6 +46,9 @@
   .paro-actions button { border:none; background:transparent; color:#dc2626; cursor:pointer; font-weight:800; }
   .error-msg { color:#dc3545; font-size:.85rem; margin-top:.25rem; display:none; }
   .show { display:block; }
+
+  /* Ajuste #3: Estibas más pequeño */
+  #estibas_text { min-height: 48px; }
 </style>
 </head>
 <body>
@@ -53,7 +56,7 @@
   <h1>Entrega de Turno – Alcohol</h1>
   <div class="sub">
     <span>Cálculo de teóricas (Turno ∩ Lote), pausas/casino, productividad, paros y WhatsApp.</span>
-    <span class="version" id="app_version">fix-atra-02 · clic para recargar</span>
+    <span class="version" id="app_version">fix-atra-03 · clic para recargar</span>
   </div>
 </header>
 
@@ -102,6 +105,12 @@
         <label for="fab_pendientes">Pendientes</label>
         <textarea id="fab_pendientes" placeholder="Acciones abiertas, materiales, calidad, etc."></textarea>
       </div>
+
+      <!-- Ajuste #1: Observaciones (después de Pendientes) -->
+      <div class="col-12">
+        <label for="fab_obs">Observaciones</label>
+        <textarea id="fab_obs" placeholder="Observaciones generales del turno, coordinación, novedades..."></textarea>
+      </div>
     </div>
   </fieldset>
 
@@ -115,7 +124,8 @@
           <option value="ALCOHOL 700ML" data-speed="54">ALCOHOL 700ML</option>
           <option value="ALCOHOL 350 ML" data-speed="64">ALCOHOL 350 ML</option>
           <option value="ALCOHOL 120ML" data-speed="67">ALCOHOL 120ML</option>
-          <option value="ALCOHOL GARRAFA 37000 ML" data-speed="6">ALCOHOL GARRAFA 37000 ML</option>
+          <!-- Ajuste #2: 37000 -> 3700 (mantiene data-speed=6) -->
+          <option value="ALCOHOL GARRAFA 3700 ML" data-speed="6">ALCOHOL GARRAFA 3700 ML</option>
           <option value="MERTHIOLATE ROJO" data-speed="12">MERTHIOLATE ROJO</option>
           <option value="MERTHIOLATE INCOLORO" data-speed="12">MERTHIOLATE INCOLORO</option>
           <option value="ILOTICINA PLUS" data-speed="10">ILOTICINA PLUS</option>
@@ -172,10 +182,10 @@
         <div class="hint">Se calcula automáticamente al ingresar Unidades reales y al actualizar las teóricas.</div>
       </div>
 
-      <!-- ESTIBAS (texto libre) -->
+      <!-- Ajuste #3: Estibas (área pequeña y ejemplo 900-930) -->
       <div class="col-12">
         <label for="estibas_text">Estibas</label>
-        <textarea id="estibas_text" placeholder="Ej: Estibas 6A001 área fría · 3 estibas completas..."></textarea>
+        <textarea id="estibas_text" placeholder="900-930"></textarea>
       </div>
 
       <div class="col-12">
@@ -285,7 +295,7 @@
 
 <script>
 (function(){
-  const APP_VERSION = 'fix-atra-02';
+  const APP_VERSION = 'fix-atra-03';
 
   // ======= Fechas (LOCAL) =======
   function parseDateOnlyLocal(s){ if(!s) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,(m||1)-1,(d||1),0,0,0,0); }
@@ -343,6 +353,7 @@
   const fab_lote = document.getElementById('fab_lote');
   const fab_estado = document.getElementById('fab_estado');
   const fab_pendientes = document.getElementById('fab_pendientes');
+  const fab_obs = document.getElementById('fab_obs'); // NUEVO
 
   const env_producto = document.getElementById('env_producto');
   const prod_err = document.getElementById('prod_err');
@@ -426,7 +437,7 @@
     const atrasoMin = diffUnid > 0 ? Math.ceil(diffUnid / velProg) : 0; // ✅ SIN *60
 
     setAtrasoMinutos(atrasoMin);
-    // Mostrar fórmula y datos usados
+    // Mostrar fórmula y datos usados (útil en soporte; puedes ocultarlo con CSS cuando quieras)
     atraso_formula.textContent = `Fórmula: ceil((${ut} – ${ur}) / ${velProg}) = ${atrasoMin} min`;
   }
 
@@ -596,6 +607,7 @@
     const fl=fab_lote.value||'N/A'; 
     const fe=fab_estado.value||'N/A'; 
     const fp=(fab_pendientes.value||'N/A').trim();
+    const fobs=(fab_obs.value||'N/A').trim(); // NUEVO
 
     const prod=env_producto.value||'N/A'; 
     const elote=env_lote.value||'N/A';
@@ -621,6 +633,7 @@
     lines.push(`- Lote: ${fl}`);
     lines.push(`- Estado: ${fe}`);
     lines.push(`- Pendientes: ${fp}`);
+    lines.push(`- Observaciones: ${fobs}`); // NUEVO
     lines.push('');
     lines.push('ENVASE');
     lines.push(`- Producto: ${prod}`);
@@ -637,14 +650,13 @@
     lines.push('');
     lines.push('PAROS');
 
+    // Ajuste #4: cuando no hay ítems, NO agregar línea adicional (sin '•—')
     const labels={equipo:'Equipo', proceso:'Proceso', alistamiento:'Alistamiento', ausentismo:'Ausentismo', esteril:'Novedad estéril', materiales:'Materiales'};
     for(const [cat,label] of Object.entries(labels)){
       const arr=parosData[cat] || [];
       const catTotal = arr.reduce((t,it)=> t + (Number(it.min)||0), 0);
       lines.push(`${label}·Total: ${catTotal} min`);
-      if(arr.length===0){ 
-        lines.push('•—'); 
-      } else {
+      if(arr.length>0){
         arr.forEach(it=> lines.push(`• ${Number(it.min)||0} min–${it.just ?? ''}`));
       }
     }
@@ -661,7 +673,7 @@
     });
   }
   function clearForm(){
-    ausentismos.value=''; fab_lote.value=''; fab_estado.value='N/A'; fab_pendientes.value='';
+    ausentismos.value=''; fab_lote.value=''; fab_estado.value='N/A'; fab_pendientes.value=''; fab_obs.value='';
     env_producto.value=''; env_lote.value=''; env_inicio.value=''; env_fin.value='';
     vel_prog.value=''; vel_real.value=''; unid_teoricas.value=''; unid_reales.value=''; productividad.value='';
     estibas_text.value='';
