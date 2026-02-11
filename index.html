@@ -4,7 +4,6 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <meta name="theme-color" content="#0d6efd" />
-<!-- Anti-cache para despliegues tipo GitHub Pages -->
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
@@ -57,7 +56,7 @@
   <h1>Entrega de Turno – Alcohol</h1>
   <div class="sub">
     <span>Cálculo de teóricas (Turno ∩ Lote), pausas/casino, productividad, paros y WhatsApp.</span>
-    <span class="version" id="app_version">fix-atra-05 · clic para recargar</span>
+    <span class="version" id="app_version">fix-atra-06 · clic para recargar</span>
   </div>
 </header>
 
@@ -197,7 +196,7 @@
 
     <div class="rowline"></div>
 
-    <!-- NUEVO: RETRASO ALISTAMIENTO LOTE 1 -->
+    <!-- Retraso alistamiento Lote 1 -->
     <div class="grid">
       <div class="col-12"><b>Retraso alistamiento (Lote 1)</b> <span class="muted">No se suma al atraso ni al total de paros.</span></div>
       <div class="col-12">
@@ -358,7 +357,7 @@
 
     <div class="rowline"></div>
 
-    <!-- NUEVO: RETRASO ALISTAMIENTO LOTE 2 -->
+    <!-- Retraso alistamiento Lote 2 -->
     <div class="grid">
       <div class="col-12"><b>Retraso alistamiento (Lote 2)</b> <span class="muted">No se suma al atraso ni al total de paros.</span></div>
       <div class="col-12">
@@ -458,7 +457,7 @@
 
 <script>
 (function(){
-  const APP_VERSION = 'fix-atra-05';
+  const APP_VERSION = 'fix-atra-06';
 
   // ======= Utilidades de fecha/hora =======
   function parseDateOnlyLocal(s){ if(!s) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,(m||1)-1,(d||1),0,0,0,0); }
@@ -505,7 +504,7 @@
       count=Math.floor(work/120);
       if(count===prev) break;
       prev=count;
-      work=Mathax(minutesBase - count*10, 0);
+      work=Math.max(minutesBase - count*10, 0); // ✅ corregido
       it++;
     }
     return { work, breaks: count*10, count };
@@ -531,7 +530,7 @@
     const detalle_descuentos = document.getElementById(`${prefix}_detalle_descuentos`);
     const calc_err = document.getElementById(`${prefix}_calc_err`);
 
-    // NUEVO: Retraso alistamiento (independiente)
+    // Retraso alistamiento (independiente)
     const ralist_min = document.getElementById(`${prefix}_ralist_min`);
     const ralist_just = document.getElementById(`${prefix}_ralist_just`);
 
@@ -746,7 +745,6 @@
 
     function buildLotMessage(title){
       if(!env_producto.value) return ''; // lote no diligenciado
-      const bounds = getShiftBoundsLocal(fecha.value || '');
       const iniDT=parseDateTimeLocal(env_inicio.value); 
       const finDT=parseDateTimeLocal(env_fin.value);
       const ini=iniDT?fmtDateTime(iniDT):'N/A'; 
@@ -759,7 +757,7 @@
       const atrasoMinTxt = atraso_min_detalle.dataset.minutos ? `${atraso_min_detalle.dataset.minutos} min` : 'N/D';
       const estTxt = (estibas_text.value||'').trim() || 'N/A';
 
-      // Nuevo: Retraso alistamiento (solo si hay datos)
+      // Retraso alistamiento (solo si hay datos)
       const ralMin = Math.max(0, Math.round(Number(ralist_min.value || 0)));
       const ralJust = String(ralist_just.value || '').trim();
       const ralLine = (ralMin>0 || ralJust) ? `- Retraso alistamiento: ${ralMin} min${ralJust ? ' – ' + ralJust : ''}` : '';
@@ -777,11 +775,10 @@
       lines.push(`- Productividad: ${prodTxt}`);
       lines.push(`- Estibas: ${estTxt}`);
       lines.push(`- Tiempo de atraso: ${atrasoMinTxt}`);
-      if(ralLine) lines.push(ralLine); // << NUEVO
+      if(ralLine) lines.push(ralLine);
       lines.push('');
       lines.push('PAROS');
 
-      // Totales por categoría + ítems (sin línea vacía si no hay ítems)
       const labels={equipo:'Equipo', proceso:'Proceso', alistamiento:'Alistamiento', ausentismo:'Ausentismo', materiales:'Materiales'};
       for(const [cat,label] of Object.entries(labels)){
         const arr=parosData[cat] || [];
@@ -806,12 +803,9 @@
     unid_reales.addEventListener('input',  ()=>{ updateProductividad(); recalcAtraso(); validateParosVsAtraso(); });
     unid_reales.addEventListener('change', ()=>{ updateProductividad(); recalcAtraso(); validateParosVsAtraso(); });
 
-    // No agregamos eventos especiales para retraso alistamiento (se lee al generar mensaje)
-
     attachParoHandlers();
     cats.forEach(renderParoList);
 
-    // API pública del controlador
     return {
       updateCalculos, updateProductividad, recalcAtraso, updateVelocidadProgramada,
       buildLotMessage,
@@ -920,7 +914,6 @@
   btn_generar.addEventListener('click', (e)=>{
     e.preventDefault();
     if(!validateBeforeGenerate()) return;
-    // Recalcular ambos lotes
     L1.updateCalculos(); L1.updateProductividad();
     L2.updateCalculos(); L2.updateProductividad();
 
