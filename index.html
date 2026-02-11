@@ -397,21 +397,20 @@
   // ======= Atraso (en minutos) =======
   function setAtrasoMinutos(minutos) {
     const min = Math.max(0, Math.round(Number(minutos || 0)));
-    // Campo muestra minutos directamente
     horas_atraso.value = String(min);
-    // Texto auxiliar (y dataset para validación de paros) en minutos
     atraso_min_detalle.textContent = `≈ ${min} min`;
     atraso_min_detalle.dataset.minutos = String(min);
   }
   function recalcAtraso() {
-    const velProg = Number(vel_prog?.value || 0);
+    const velProg = Number(vel_prog?.value || 0); // frascos/min
     const ut = Number(unid_teoricas?.value || 0);
     const ur = Number(unid_reales?.value || 0);
     if (!isFinite(velProg) || velProg <= 0) { setAtrasoMinutos(0); return; }
     if (!isFinite(ut) || ut <= 0)         { setAtrasoMinutos(0); return; }
     if (!isFinite(ur) || ur <  0)         { setAtrasoMinutos(0); return; }
     const diffUnid = Math.max(ut - ur, 0);
-    const atrasoMin = diffUnid > 0 ? Math.round((diffUnid / velProg) * 60) : 0;
+    // ✅ Atraso en minutos: unidades faltantes / (frascos/min)
+    const atrasoMin = diffUnid > 0 ? Math.ceil(diffUnid / velProg) : 0;
     setAtrasoMinutos(atrasoMin);
   }
 
@@ -715,3 +714,4 @@
 </script>
 </body>
 </html>
+``
