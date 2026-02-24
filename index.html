@@ -47,7 +47,7 @@
   .show { display:block; }
 
   /* Estibas pequeña */
-  #l1_estibas_text, #l2_estibas_text { min-height: 48px; }
+  #l1_estibas_text, #l2_estibas_text, #l3_estibas_text { min-height: 48px; }
   .sublegend { font-weight:700; margin: .3rem 0 .6rem; color:#111827; }
 </style>
 </head>
@@ -56,7 +56,7 @@
   <h1>Entrega de Turno – Alcohol</h1>
   <div class="sub">
     <span>Cálculo de teóricas (Turno ∩ Lote), pausas/casino, productividad, paros y WhatsApp.</span>
-    <span class="version" id="app_version">fix-atra-06 · clic para recargar</span>
+    <span class="version" id="app_version">fix-atra-10 · clic para recargar</span>
   </div>
 </header>
 
@@ -77,6 +77,8 @@
           <option value="1_0700_1630" data-turno="1" data-start="07:00" data-end="16:30" data-cross="same">Turno 1 (07:00–16:30)</option>
           <option value="2_1500_2300" data-turno="2" data-start="15:00" data-end="23:00" data-cross="same">Turno 2 (15:00–23:00)</option>
           <option value="2_1500_0145" data-turno="2" data-start="15:00" data-end="01:45" data-cross="next">Turno 2 (15:00–01:45)</option>
+          <!-- Turno 3 -->
+          <option value="3_2300_0700" data-turno="3" data-start="23:00" data-end="07:00" data-cross="next">Turno 3 (23:00–07:00)</option>
         </select>
       </div>
       <div class="col-12">
@@ -110,6 +112,34 @@
       <div class="col-12">
         <label for="fab_obs">Observaciones</label>
         <textarea id="fab_obs" placeholder="Observaciones generales del turno, coordinación, novedades..."></textarea>
+      </div>
+    </div>
+  </fieldset>
+
+  <!-- FABRICACIÓN 2 (opcional) -->
+  <fieldset>
+    <legend>Fabricación – Lote 2 (opcional)</legend>
+    <div class="grid">
+      <div class="col-6">
+        <label for="fab2_lote">Lote</label>
+        <input type="text" id="fab2_lote" placeholder="Ej: 6A00X" />
+      </div>
+      <div class="col-6">
+        <label for="fab2_estado">Estado</label>
+        <select id="fab2_estado">
+          <option value="N/A">N/A</option>
+          <option value="En proceso">En proceso</option>
+          <option value="Pendiente">Pendiente</option>
+          <option value="Finalizado">Finalizado</option>
+        </select>
+      </div>
+      <div class="col-12">
+        <label for="fab2_pendientes">Pendientes</label>
+        <textarea id="fab2_pendientes" placeholder="Acciones abiertas, materiales, calidad, etc."></textarea>
+      </div>
+      <div class="col-12">
+        <label for="fab2_obs">Observaciones</label>
+        <textarea id="fab2_obs" placeholder="Observaciones del lote 2..."></textarea>
       </div>
     </div>
   </fieldset>
@@ -436,6 +466,167 @@
     </div>
   </fieldset>
 
+  <!-- ENVASE LOTE 3 -->
+  <fieldset>
+    <legend>Envase – Lote 3</legend>
+    <div class="grid">
+      <div class="col-12">
+        <label for="l3_producto">Producto</label>
+        <select id="l3_producto">
+          <option value="">-- (Opcional) Seleccione --</option>
+          <option value="ALCOHOL 700ML" data-speed="54">ALCOHOL 700ML</option>
+          <option value="ALCOHOL 350 ML" data-speed="64">ALCOHOL 350 ML</option>
+          <option value="ALCOHOL 120ML" data-speed="67">ALCOHOL 120ML</option>
+          <option value="ALCOHOL GARRAFA 3700 ML" data-speed="6">ALCOHOL GARRAFA 3700 ML</option>
+          <option value="MERTHIOLATE ROJO" data-speed="12">MERTHIOLATE ROJO</option>
+          <option value="MERTHIOLATE INCOLORO" data-speed="12">MERTHIOLATE INCOLORO</option>
+          <option value="ILOTICINA PLUS" data-speed="10">ILOTICINA PLUS</option>
+          <option value="ILOTICINA DUO" data-speed="10">ILOTICINA DUO</option>
+          <option value="ILOTICINA PLUS MM" data-speed="10">ILOTICINA PLUS MM</option>
+          <option value="ILOTICINA DUO MM" data-speed="10">ILOTICINA DUO MM</option>
+        </select>
+        <div id="l3_prod_err" class="error-msg">Seleccione un producto válido para asignar la velocidad programada.</div>
+      </div>
+
+      <div class="col-6">
+        <label for="l3_lote">Lote</label>
+        <input type="text" id="l3_lote" placeholder="Ej: 6A003" />
+      </div>
+      <div class="col-6">
+        <div class="muted">Cálculo: intersección entre el turno seleccionado y la actividad real del lote.</div>
+      </div>
+
+      <div class="col-6">
+        <label for="l3_inicio">Inicio del lote (fecha y hora)</label>
+        <input type="datetime-local" id="l3_inicio" />
+      </div>
+      <div class="col-6">
+        <label for="l3_fin">Fin del lote (fecha y hora)</label>
+        <input type="datetime-local" id="l3_fin" />
+        <div class="hint">Si no terminó, déjelo vacío.</div>
+      </div>
+
+      <div class="col-6">
+        <label for="l3_vel_prog">Velocidad programada (frascos/min)</label>
+        <input type="number" id="l3_vel_prog" class="readonly" readonly />
+        <div class="hint">Se autocompleta según el producto.</div>
+      </div>
+      <div class="col-6">
+        <label for="l3_vel_real">Velocidad real (frascos/min)</label>
+        <input type="number" id="l3_vel_real" min="0" step="0.1" placeholder="Dato reportado por el supervisor" />
+      </div>
+
+      <div class="col-6">
+        <label for="l3_unid_teoricas">Unidades teóricas (auto)</label>
+        <input type="number" id="l3_unid_teoricas" class="readonly" readonly />
+        <div class="muted" id="l3_detalle_descuentos"></div>
+        <div class="error-msg" id="l3_calc_err"></div>
+      </div>
+      <div class="col-6">
+        <label for="l3_unid_reales">Unidades reales</label>
+        <input type="number" id="l3_unid_reales" min="0" />
+      </div>
+
+      <div class="col-12">
+        <label for="l3_productividad">Productividad (Unidades reales / Unidades teóricas)</label>
+        <input type="text" id="l3_productividad" class="readonly" readonly placeholder="0.00 %" />
+        <div class="hint">Se calcula automáticamente al ingresar Unidades reales y al actualizar las teóricas.</div>
+      </div>
+
+      <div class="col-12">
+        <label for="l3_estibas_text">Estibas</label>
+        <textarea id="l3_estibas_text" placeholder="900-930"></textarea>
+      </div>
+
+      <div class="col-12">
+        <label for="l3_horas_atraso">Tiempo de atraso</label>
+        <input type="text" id="l3_horas_atraso" class="readonly" readonly placeholder="min" />
+        <div class="muted" id="l3_atraso_min_detalle" aria-live="polite"></div>
+        <div class="muted" id="l3_atraso_formula" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <div class="rowline"></div>
+
+    <!-- Retraso alistamiento Lote 3 -->
+    <div class="grid">
+      <div class="col-12"><b>Retraso alistamiento (Lote 3)</b> <span class="muted">No se suma al atraso ni al total de paros.</span></div>
+      <div class="col-12">
+        <div class="paro-form">
+          <input type="number" id="l3_ralist_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="l3_ralist_just" placeholder="Justificación..." />
+        </div>
+      </div>
+    </div>
+
+    <div class="rowline"></div>
+
+    <!-- PAROS LOTE 3 -->
+    <div class="grid">
+      <div class="col-12"><b>Paros Lote 3</b> (agrega los ítems por categoría)</div>
+
+      <div class="col-12">
+        <label>Equipo · <span class="badge">Total: <span id="l3_sum_equipo">0</span> min</span></label>
+        <div class="paro-form">
+          <input type="number" id="l3_equipo_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="l3_equipo_just" placeholder="Justificación..." />
+          <button class="ghost" type="button" id="l3_add_equipo">Agregar</button>
+        </div>
+        <div id="l3_equipo_err" class="error-msg">Ingrese minutos (>0). Justificación opcional.</div>
+        <ul class="paro-list" id="l3_list_equipo"></ul>
+      </div>
+
+      <div class="col-12">
+        <label>Proceso · <span class="badge">Total: <span id="l3_sum_proceso">0</span> min</span></label>
+        <div class="paro-form">
+          <input type="number" id="l3_proceso_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="l3_proceso_just" placeholder="Justificación..." />
+          <button class="ghost" type="button" id="l3_add_proceso">Agregar</button>
+        </div>
+        <div id="l3_proceso_err" class="error-msg">Ingrese minutos (>0).</div>
+        <ul class="paro-list" id="l3_list_proceso"></ul>
+      </div>
+
+      <div class="col-12">
+        <label>Alistamiento · <span class="badge">Total: <span id="l3_sum_alistamiento">0</span> min</span></label>
+        <div class="paro-form">
+          <input type="number" id="l3_alistamiento_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="l3_alistamiento_just" placeholder="Justificación..." />
+          <button class="ghost" type="button" id="l3_add_alistamiento">Agregar</button>
+        </div>
+        <div id="l3_alistamiento_err" class="error-msg">Ingrese minutos (>0).</div>
+        <ul class="paro-list" id="l3_list_alistamiento"></ul>
+      </div>
+
+      <div class="col-12">
+        <label>Ausentismo · <span class="badge">Total: <span id="l3_sum_ausentismo">0</span> min</span></label>
+        <div class="paro-form">
+          <input type="number" id="l3_ausentismo_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="l3_ausentismo_just" placeholder="Justificación..." />
+          <button class="ghost" type="button" id="l3_add_ausentismo">Agregar</button>
+        </div>
+        <div id="l3_ausentismo_err" class="error-msg">Ingrese minutos (>0).</div>
+        <ul class="paro-list" id="l3_list_ausentismo"></ul>
+      </div>
+
+      <div class="col-12">
+        <label>Materiales · <span class="badge">Total: <span id="l3_sum_materiales">0</span> min</span></label>
+        <div class="paro-form">
+          <input type="number" id="l3_materiales_min" min="0" step="1" placeholder="Minutos" />
+          <input type="text" id="l3_materiales_just" placeholder="Justificación..." />
+          <button class="ghost" type="button" id="l3_add_materiales">Agregar</button>
+        </div>
+        <div id="l3_materiales_err" class="error-msg">Ingrese minutos (>0).</div>
+        <ul class="paro-list" id="l3_list_materiales"></ul>
+      </div>
+
+      <div class="col-12 kpi">
+        <div><b>Total paros Lote 3</b> (min): <span class="val" id="l3_paros_total">0</span></div>
+        <div id="l3_paros_alerta" class="muted" aria-live="polite">Se validará contra el atraso calculado (L3).</div>
+      </div>
+    </div>
+  </fieldset>
+
   <!-- MENSAJE -->
   <fieldset>
     <legend>Mensaje</legend>
@@ -457,7 +648,7 @@
 
 <script>
 (function(){
-  const APP_VERSION = 'fix-atra-06';
+  const APP_VERSION = 'fix-atra-10';
 
   // ======= Utilidades de fecha/hora =======
   function parseDateOnlyLocal(s){ if(!s) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,(m||1)-1,(d||1),0,0,0,0); }
@@ -477,11 +668,28 @@
     const startHM = (opt.dataset.start || '07:00').split(':').map(Number);
     const endHM   = (opt.dataset.end   || '15:00').split(':').map(Number);
     const cross   = (opt.dataset.cross || 'same'); // 'same' | 'next'
+
     const start = new Date(base); start.setHours(startHM[0]||0, startHM[1]||0, 0, 0);
     const end = new Date(base);   end.setHours(endHM[0]||0,   endHM[1]||0,   0, 0);
     if(cross==='next' || end <= start){ end.setDate(end.getDate()+1); }
+
     const turnoNum = opt.dataset.turno || '';
     const label = opt.textContent || '';
+
+    // === AJUSTE SÁBADO: topes de turno para cálculo de horas pérdidas ===
+    // JS: 0 = domingo, 6 = sábado
+    const isSaturday = base.getDay() === 6;
+    if (isSaturday) {
+      if (String(turnoNum) === '1') {
+        end.setFullYear(base.getFullYear(), base.getMonth(), base.getDate());
+        end.setHours(14,10,0,0);
+      } else if (String(turnoNum) === '2') {
+        end.setFullYear(base.getFullYear(), base.getMonth(), base.getDate());
+        end.setHours(21,45,0,0);
+      }
+      // Turno 3: sin cambios
+    }
+
     return { start, end, turnoNum, label };
   }
 
@@ -494,9 +702,15 @@
     } else if (String(turnoNum)==='2'){
       const t=new Date(bounds.start); t.setHours(19,0,0,0);
       if(winStart<t && winEnd>t) m+=40;
+    } else if (String(turnoNum)==='3'){
+      // Casino Turno 3 a la 1:00 a. m.
+      const T3_CASINO = new Date(bounds.start);
+      T3_CASINO.setHours(1,0,0,0); // 01:00
+      if (winStart < T3_CASINO && winEnd > T3_CASINO) m += 40;
     }
     return m;
   }
+
   function computeWorkAndBreaks(minutesBase){
     // 10 min cada 120 min de TRABAJO EFECTIVO (iterativo)
     let work=Math.max(minutesBase,0), prev=-1, count=0, it=0;
@@ -504,7 +718,7 @@
       count=Math.floor(work/120);
       if(count===prev) break;
       prev=count;
-      work=Math.max(minutesBase - count*10, 0); // ✅ corregido
+      work=Math.max(minutesBase - count*10, 0);
       it++;
     }
     return { work, breaks: count*10, count };
@@ -585,7 +799,7 @@
       if (!isFinite(ut) || ut <= 0)           { setAtrasoMinutos(0); atraso_formula.textContent=''; return; }
       if (!isFinite(ur) || ur <  0)           { setAtrasoMinutos(0); atraso_formula.textContent=''; return; }
       const diffUnid = Math.max(ut - ur, 0);
-      const atrasoMin = diffUnid > 0 ? Math.ceil(diffUnid / velProg) : 0; // SIN *60
+      const atrasoMin = diffUnid > 0 ? Math.ceil(diffUnid / velProg) : 0;
       setAtrasoMinutos(atrasoMin);
       atraso_formula.textContent = `Fórmula: ceil((${ut} – ${ur}) / ${velProg}) = ${atrasoMin} min`;
     }
@@ -744,7 +958,7 @@
     }
 
     function buildLotMessage(title){
-      if(!env_producto.value) return ''; // lote no diligenciado
+      if(!env_producto.value) return '';
       const iniDT=parseDateTimeLocal(env_inicio.value); 
       const finDT=parseDateTimeLocal(env_fin.value);
       const ini=iniDT?fmtDateTime(iniDT):'N/A'; 
@@ -757,7 +971,6 @@
       const atrasoMinTxt = atraso_min_detalle.dataset.minutos ? `${atraso_min_detalle.dataset.minutos} min` : 'N/D';
       const estTxt = (estibas_text.value||'').trim() || 'N/A';
 
-      // Retraso alistamiento (solo si hay datos)
       const ralMin = Math.max(0, Math.round(Number(ralist_min.value || 0)));
       const ralJust = String(ralist_just.value || '').trim();
       const ralLine = (ralMin>0 || ralJust) ? `- Retraso alistamiento: ${ralMin} min${ralJust ? ' – ' + ralJust : ''}` : '';
@@ -809,14 +1022,14 @@
     return {
       updateCalculos, updateProductividad, recalcAtraso, updateVelocidadProgramada,
       buildLotMessage,
-      isActive: ()=> Boolean(env_producto.value),
-      validateRequired: ()=> {
+      isActive: () => Boolean(env_producto.value),
+      validateRequired: () => {
         if(!env_producto.value) return true; // si no está activo, pasa
-        if(!env_inicio.value){ alert('['+ (prefix==='l1'?'Lote 1':'Lote 2') +'] Ingrese Inicio del lote.'); return false; }
-        if(!vel_prog.value){ alert('['+ (prefix==='l1'?'Lote 1':'Lote 2') +'] La velocidad programada no se ha asignado (verifique Producto).'); return false; }
+        if(!env_inicio.value){ alert('['+ (prefix==='l1'?'Lote 1': (prefix==='l2'?'Lote 2':'Lote 3')) +'] Ingrese Inicio del lote.'); return false; }
+        if(!vel_prog.value){ alert('['+ (prefix==='l1'?'Lote 1': (prefix==='l2'?'Lote 2':'Lote 3')) +'] La velocidad programada no se ha asignado (verifique Producto).'); return false; }
         return true;
       },
-      clear: ()=>{
+      clear: () => {
         env_producto.value=''; env_lote.value=''; env_inicio.value=''; env_fin.value='';
         vel_prog.value=''; vel_real.value=''; unid_teoricas.value=''; unid_reales.value=''; productividad.value='';
         estibas_text.value='';
@@ -838,9 +1051,16 @@
   const fab_pendientes = document.getElementById('fab_pendientes');
   const fab_obs = document.getElementById('fab_obs');
 
+  // refs Fabricación 2
+  const fab2_lote = document.getElementById('fab2_lote');
+  const fab2_estado = document.getElementById('fab2_estado');
+  const fab2_pendientes = document.getElementById('fab2_pendientes');
+  const fab2_obs = document.getElementById('fab2_obs');
+
   // Controladores por lote
   const L1 = setupLot('l1');
   const L2 = setupLot('l2');
+  const L3 = setupLot('l3');
 
   // ======= Mensaje (WhatsApp) =======
   function buildMessage(){
@@ -868,11 +1088,31 @@
     lines.push(`- Observaciones: ${fobs}`);
     lines.push('');
 
+    // Fabricación – Lote 2 (opcional)
+    const hasFab2 = Boolean(
+      (fab2_lote?.value || '').trim() ||
+      (fab2_pendientes?.value || '').trim() ||
+      (fab2_obs?.value || '').trim() ||
+      (fab2_estado?.value && fab2_estado.value !== 'N/A')
+    );
+
+    if (hasFab2) {
+      lines.push('FABRICACIÓN – LOTE 2');
+      lines.push(`- Lote: ${fab2_lote.value || 'N/A'}`);
+      lines.push(`- Estado: ${fab2_estado.value || 'N/A'}`);
+      lines.push(`- Pendientes: ${(fab2_pendientes.value || 'N/A').trim()}`);
+      lines.push(`- Observaciones: ${(fab2_obs.value || 'N/A').trim()}`);
+      lines.push('');
+    }
+
     const lot1Msg = L1.buildLotMessage('ENVASE – LOTE 1');
     if(lot1Msg){ lines.push(lot1Msg); lines.push(''); }
 
     const lot2Msg = L2.buildLotMessage('ENVASE – LOTE 2');
     if(lot2Msg){ lines.push(lot2Msg); lines.push(''); }
+
+    const lot3Msg = L3.buildLotMessage('ENVASE – LOTE 3');
+    if(lot3Msg){ lines.push(lot3Msg); lines.push(''); }
 
     return lines.join('\n');
   }
@@ -887,7 +1127,9 @@
   }
   function clearForm(){
     ausentismos.value=''; fab_lote.value=''; fab_estado.value='N/A'; fab_pendientes.value=''; fab_obs.value='';
-    L1.clear(); L2.clear();
+    fab2_lote.value=''; fab2_estado.value='N/A'; fab2_pendientes.value=''; fab2_obs.value='';
+
+    L1.clear(); L2.clear(); L3.clear();
     mensaje.value=''; btn_whatsapp.disabled=true; btn_copiar.disabled=true;
     fecha.valueAsDate=new Date(); turnoSel.value='';
   }
@@ -906,8 +1148,9 @@
     if(!document.getElementById('l1_producto').value){ alert('[Lote 1] Seleccione el Producto.'); return false; }
     if(!document.getElementById('l1_inicio').value){ alert('[Lote 1] Ingrese Inicio del lote (fecha y hora).'); return false; }
     if(!document.getElementById('l1_vel_prog').value){ alert('[Lote 1] La velocidad programada no se ha asignado (verifique Producto).'); return false; }
-    // Lote 2 opcional: si hay producto, valida mínimos
+    // Lote 2 y Lote 3 opcionales: si hay producto, valida mínimos
     if(!L2.validateRequired()) return false;
+    if(!L3.validateRequired()) return false;
     return true;
   }
 
@@ -916,6 +1159,7 @@
     if(!validateBeforeGenerate()) return;
     L1.updateCalculos(); L1.updateProductividad();
     L2.updateCalculos(); L2.updateProductividad();
+    L3.updateCalculos(); L3.updateProductividad();
 
     const text = buildMessage();
     mensaje.value = text;
@@ -935,8 +1179,13 @@
     });
   }
   fab_estado.value = "N/A";
+  fab2_estado.value = "N/A";
+
+  if(!fecha.value){ fecha.valueAsDate = new Date(); }
+
   L1.updateVelocidadProgramada(); L1.updateCalculos(); L1.updateProductividad();
   L2.updateVelocidadProgramada(); L2.updateCalculos(); L2.updateProductividad();
+  L3.updateVelocidadProgramada(); L3.updateCalculos(); L3.updateProductividad();
 })();
 </script>
 </body>
