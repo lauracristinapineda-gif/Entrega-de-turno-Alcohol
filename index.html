@@ -56,7 +56,7 @@
   <h1>Entrega de Turno – Alcohol</h1>
   <div class="sub">
     <span>Cálculo de teóricas (Turno ∩ Lote), pausas/casino, productividad, paros y WhatsApp.</span>
-    <span class="version" id="app_version">fix-atra-10 · clic para recargar</span>
+    <span class="version" id="app_version">fix-atra-11 · clic para recargar</span>
   </div>
 </header>
 
@@ -648,7 +648,7 @@
 
 <script>
 (function(){
-  const APP_VERSION = 'fix-atra-10';
+  const APP_VERSION = 'fix-atra-11';
 
   // ======= Utilidades de fecha/hora =======
   function parseDateOnlyLocal(s){ if(!s) return null; const [y,m,d]=s.split('-').map(Number); return new Date(y,(m||1)-1,(d||1),0,0,0,0); }
@@ -667,7 +667,7 @@
     const base = parseDateOnlyLocal(dateStr);
     const startHM = (opt.dataset.start || '07:00').split(':').map(Number);
     const endHM   = (opt.dataset.end   || '15:00').split(':').map(Number);
-    const cross   = (opt.dataset.cross || 'same'); // 'same' | 'next'
+    const cross   = (opt.dataset.cross || 'same');
 
     const start = new Date(base); start.setHours(startHM[0]||0, startHM[1]||0, 0, 0);
     const end = new Date(base);   end.setHours(endHM[0]||0,   endHM[1]||0,   0, 0);
@@ -676,8 +676,8 @@
     const turnoNum = opt.dataset.turno || '';
     const label = opt.textContent || '';
 
-    // === AJUSTE SÁBADO: topes de turno para cálculo de horas pérdidas ===
-    // JS: 0 = domingo, 6 = sábado
+    // === AJUSTE SÁBADO: topes para T1/T2 en horas pérdidas ===
+    // 0 = dom, ..., 6 = sáb
     const isSaturday = base.getDay() === 6;
     if (isSaturday) {
       if (String(turnoNum) === '1') {
@@ -687,7 +687,7 @@
         end.setFullYear(base.getFullYear(), base.getMonth(), base.getDate());
         end.setHours(21,45,0,0);
       }
-      // Turno 3: sin cambios
+      // T3 sin cambios
     }
 
     return { start, end, turnoNum, label };
@@ -703,10 +703,11 @@
       const t=new Date(bounds.start); t.setHours(19,0,0,0);
       if(winStart<t && winEnd>t) m+=40;
     } else if (String(turnoNum)==='3'){
-      // Casino Turno 3 a la 1:00 a. m.
-      const T3_CASINO = new Date(bounds.start);
-      T3_CASINO.setHours(1,0,0,0); // 01:00
-      if (winStart < T3_CASINO && winEnd > T3_CASINO) m += 40;
+      // Casino T3 a la 01:00 del día siguiente al inicio del turno
+      const t = new Date(bounds.start);
+      t.setDate(t.getDate() + 1); // día siguiente
+      t.setHours(1,0,0,0);        // 01:00
+      if (winStart < t && winEnd > t) m += 40;
     }
     return m;
   }
@@ -971,6 +972,7 @@
       const atrasoMinTxt = atraso_min_detalle.dataset.minutos ? `${atraso_min_detalle.dataset.minutos} min` : 'N/D';
       const estTxt = (estibas_text.value||'').trim() || 'N/A';
 
+      // Retraso alistamiento (solo si hay datos)
       const ralMin = Math.max(0, Math.round(Number(ralist_min.value || 0)));
       const ralJust = String(ralist_just.value || '').trim();
       const ralLine = (ralMin>0 || ralJust) ? `- Retraso alistamiento: ${ralMin} min${ralJust ? ' – ' + ralJust : ''}` : '';
@@ -1024,7 +1026,7 @@
       buildLotMessage,
       isActive: () => Boolean(env_producto.value),
       validateRequired: () => {
-        if(!env_producto.value) return true; // si no está activo, pasa
+        if(!env_producto.value) return true; // opcional si no hay producto
         if(!env_inicio.value){ alert('['+ (prefix==='l1'?'Lote 1': (prefix==='l2'?'Lote 2':'Lote 3')) +'] Ingrese Inicio del lote.'); return false; }
         if(!vel_prog.value){ alert('['+ (prefix==='l1'?'Lote 1': (prefix==='l2'?'Lote 2':'Lote 3')) +'] La velocidad programada no se ha asignado (verifique Producto).'); return false; }
         return true;
@@ -1088,7 +1090,7 @@
     lines.push(`- Observaciones: ${fobs}`);
     lines.push('');
 
-    // Fabricación – Lote 2 (opcional)
+    // Fabricación – Lote 2 (opcional, solo si hay datos)
     const hasFab2 = Boolean(
       (fab2_lote?.value || '').trim() ||
       (fab2_pendientes?.value || '').trim() ||
